@@ -49,7 +49,7 @@ module.exports = {
 			read: 'nearest',
 			key: 'repl.key',
 			nodes: [{
-				hostname: '127.0.0.1',
+				hostname: '192.168.0.22',
 				port: 27017 
 			}]
 		}
@@ -57,13 +57,17 @@ module.exports = {
 	
 	//! Client Libraries
 	libraries: [
-		//Dependancies
+		
+		//jQuery & Ember
 		'bower_components/jquery/dist/jquery.min.js',
 		'bower_components/jquery/dist/jquery.min.map',
-		//Interface
+		'bower_components/ember/ember.debug.js',
+		
+		//SemanticUI
 		'semantic/dist/semantic.min.js',
 		'semantic/dist/semantic.min.css',
-		'semantic/dist/*/**/*'
+		'semantic/dist/*/**/*',
+		'!semantic/dist/components/**/*'
 	],
 	
 	//! Server Test Plans
@@ -82,7 +86,7 @@ module.exports = {
 	certs: {
 		path: '/opt/mean/certs',
 		details: {
-			hostname: '127.0.0.1',
+			hostname: '192.168.0.22',
 			organisation: 'Vmlweb Ltd',
 			country: 'GB',
 			state: 'Kent',

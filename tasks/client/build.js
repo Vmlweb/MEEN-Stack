@@ -1,194 +1,192 @@
 //Modules
-const gulp = require('gulp');
-const beep = require('beepbeep');
-const path = require('path');
-const webpack = require('webpack');
-const obfuscatorPlugin = require('webpack-js-obfuscator');
-const htmlPlugin = require('html-webpack-plugin');
-const typeCheckerPlugin = require('awesome-typescript-loader').ForkCheckerPlugin;
+const gulp = require('gulp')
+const path = require('path')
+const beep = require('beepbeep')
+const concat = require('gulp-concat')
+const template = require('gulp-ember-templates')
+const sourcemap = require('gulp-sourcemaps')
+const browserify = require('browserify')
+const babelify = require('babelify')
+const source = require('vinyl-source-stream')
+const buffer = require('vinyl-buffer')
+const inject = require('gulp-inject')
+const sort = require('sort-stream')
+const watchify = require('watchify')
+const eslint = require('gulp-eslint')
 
 //Config
-let config = require('../../config.js');
+let config = require('../../config.js')
+let setup = false;
 
 /*! Tasks 
 - client.build
 
-- client.build.libs
 - client.build.source
-- client.build.typescript
+- client.build.source.index
+- client.build.source.misc
+- client.build.source.css
+- client.build.source.libs
+- client.build.source.templates
+- client.build.source.js
+
+- client.build.inject
 */
 
 //! Build
-gulp.task('client.build', gulp.parallel(
-	'client.build.libs',
+gulp.task('client.build', gulp.series(
 	'client.build.source',
-	'client.build.webpack'
-));
+	'client.build.inject'
+))
 
-//Copy over library dependancies
-gulp.task('client.build.libs', function(){
-	return gulp.src(config.libraries)
-	.pipe(gulp.dest('builds/client/libs'));
-});
+//! Source
+gulp.task('client.build.source', gulp.parallel(
+	'client.build.source.index',
+	'client.build.source.misc',
+	'client.build.source.css',
+	'client.build.source.libs',
+	'client.build.source.templates',
+	'client.build.source.js'
+))
 
-//Copy over client source files
-gulp.task('client.build.source', function(){
+//Copy misc client files
+gulp.task('client.build.source.index', function(){
+	return gulp.src('client/index.html')
+		.pipe(gulp.dest('builds/client'))
+})
+
+//Copy misc client files
+gulp.task('client.build.source.misc', function(){
 	return gulp.src([
 		'client/**/*',
-		'!client/**/*.ts',
-		'!client/app/**/*',
-		'!client/typings.json',
-		'!client/typings',
-		'!client/typings/**/*'
+		'!client/**/*.css',
+		'!client/**/*.hbs',
+		'!client/**/*.js'
 	])
-	.pipe(gulp.dest('builds/client'));
-});
+		.pipe(gulp.dest('builds/client'))
+		.on('end', function(){
+			if (setup){ beep(); }
+		})
+})
 
-//Compile source into a webpack
-gulp.task('client.build.webpack', function(done) {
-	let options = {
-		
-		//File types
-		resolve: {
-			extensions: ['', '.js', '.ts', '.html', '.jade', '.css', '.styl'],
-			alias: {
-				app: 'client/app',
-				common: 'client/common'
-			}
-		},
-		module: {
-			noParse: [/.+zone\.js\/dist\/.+/, /.+angular2\/bundles\/.+/, /angular2-polyfills\.js/],
-			preLoaders: [
-				{ test: /\.js$/, loader: 'source-map-loader', exclude: ['node_modules/rxjs', 'node_modules/@angular'] }
-			],
-			loaders: [
-				{ test: /\.ts$/, loader: 'awesome-typescript-loader', query: {
-					tsconfig: 'tsconfig.' + process.env.NODE_ENV + '.json'
-				} },
-				{ test: /\.html$/, loader: 'html' },
-				{ test: /\.css$/, loader: 'css' },
-				{ test: /\.(png|jpg|gif)$/, loader: 'url-loader?limit=8192' }
-			]
-		},
-		
-		//Plugins
-		plugins: [
-			new webpack.DefinePlugin({
-				'process.env': {
-					'ENV': JSON.stringify(process.env.NODE_ENV),
-					'CONFIG': JSON.stringify(config)
-				}
-			})
-		]
+//Copy client css files
+gulp.task('client.build.source.css', function(){
+	return gulp.src('client/**/*.css')
+		.pipe(concat('app.css'))
+		.pipe(gulp.dest('builds/client'))
+		.on('end', function(){
+			if (setup){ beep(); }
+		})
+})
+
+//Copy client library files
+gulp.task('client.build.source.libs', function(){
+	return gulp.src(config.libraries)
+		.pipe(gulp.dest('builds/client/libs'))
+})
+
+//Generate precompiled templates file
+gulp.task('client.build.source.templates', function(){
+	return gulp.src('client/**/*.hbs')
+		.pipe(template({
+			compiler: require('../../bower_components/ember/ember-template-compiler'),
+			isHTMLBars: true
+		}))
+		.on('error', function(err){
+			beep(2);
+			console.log(err.stack);
+			this.emit('end');
+		})
+		.pipe(concat('templates.js'))
+		.pipe(gulp.dest('builds/client'))
+		.on('end', function(){
+			if (setup){ beep(); }
+		})
+})
+
+module.exports = {};
+
+//Setup browserify with configurations
+module.exports.browserify = browserify(Object.assign({}, watchify.args, {
+	entries: 'client/index.js',
+	debug: true,
+	insertGlobalVars: {
+		ENV: function(file, dir){ JSON.stringify(process.env.NODE_ENV) },
+		CONFIG: function(file, dir){ JSON.stringify(config) }
+	}
+}))
+
+//Setup watchify to monitor and update build live
+module.exports.watchify = function(){
+	module.exports.browserify = watchify(module.exports.browserify);
+	module.exports.browserify.on('update', function(){
+		module.exports.bundle()
+	});
+	module.exports.browserify.on('log', function(log){
+		console.log(log);
+	});
+	module.exports.bundle();
+	setup = true;
+}
+
+//Setup build and source map pipeline
+module.exports.bundle = function(){
+	return module.exports.browserify
+		.transform(babelify.configure({
+			presets: ['es2015']
+		}))
+		.bundle()
+		.on('error', function(err){
+			beep(2);
+			console.log(err.stack);
+			this.emit('end');
+		})
+		.pipe(source('app.js'))
+		.pipe(buffer())
+		.pipe(sourcemap.init({ loadMaps: true }))
+		.pipe(sourcemap.write('./'))
+    	.pipe(gulp.dest('builds/client'))
+		.on('end', function(){
+			if (setup){ beep(); }
+		})
+}
+
+//Generated compiled client javascript file
+gulp.task('client.build.source.js', module.exports.bundle)
+
+//Inject js and css files into html
+gulp.task('client.build.inject', function(){
+	
+	//Create list of library filenames
+	let libs = []
+	for (let i in config.libraries){
+		libs.push(path.basename(config.libraries[i]))
 	}
 	
-	//Shared development and distribution options
-	if (process.env.NODE_ENV === 'dev' || process.env.NODE_ENV === 'dist'){
-	
-		//Input and outputs
-		options.entry = {
-			polyfills: './client/polyfills.ts',
-			vendors: './client/vendors.ts',
-			app: './client/bootstrap.ts'
-		};
-		options.output = {
-			path: './builds/client',
-			filename: '[name].js'
-		};
-	
-		//Generate landing html page
-		options.plugins.push(new htmlPlugin({
-			template: 'client/index.html'
-		}));
+	//Find and sort injectable files by library order
+	let sorted = gulp.src([
+		'builds/client/libs/**/*.js',
+		'builds/client/libs/**/*.css',
+		'builds/client/*.css',
+		'builds/client/*.js'
+	], { read: false }).pipe(sort(function(a, b){
 		
-		//Split into common chunks
-		options.plugins.push(new webpack.optimize.CommonsChunkPlugin({
-			name: ['app', 'vendors', 'polyfills']
-		}));
-	}
-	
-	//Distribution options
-	if (process.env.NODE_ENV === 'dist'){	
-	
-		//Minify
-		options.plugins.push(new webpack.optimize.UglifyJsPlugin({
-			mangle: false,
-			compress: {
-				warnings: false
-			}
-		}));
+		//Check whether filename exists in libraries and return order
+		let index1 = libs.indexOf(path.basename(a.path))
+		let index2 = libs.indexOf(path.basename(b.path))
 		
-		//Obsfucate
-		options.plugins.push(new obfuscatorPlugin({}, [
-			'vendors.js',
-			'polyfills.js',
-			'**.html'
-		]));
-		
-	//Testing options 
-	}else if (process.env.NODE_ENV === 'test'){
-		
-		//Source maps
-		options.devtool = 'inline-source-map';
-		
-		//Modify typescript compilation
-		options.ts = {
-			compilerOptions: {
-				sourceMap: false,
-		        sourceRoot: './client',
-		        inlineSourceMap: true
-			}
+		//Return copmarison result
+		if (index1 == -1 || index2 == -1){
+			return -1
+		}else if (index1 > index2){
+			return 1
+		}else if (index1 < index2){
+			return -1
+		}else{
+			return 0
 		}
-		
-		//Insert coverage instruments
-		options.module.postLoaders = [{
-	        test: /\.ts$/,
-	        loader: 'istanbul-instrumenter-loader',
-	        include: path.resolve('client'),
-	        exclude: [/\.test\.ts$/, /node_modules/]
-	    }];
-	    
-	//Development options
-	}else if (process.env.NODE_ENV === 'dev'){
-		
-		//Source maps
-		options.devtool = 'eval-source-map';
-		
-		//Add forked type checker for quicker builds
-		options.plugins.push(new typeCheckerPlugin());
-		options.plugins.push(new webpack.NoErrorsPlugin());
-	}
+	}))
 	
-	//Setup callback for completion
-	let callback = function(err, stats) {
-		
-		//Log output of build
-		console.log(stats.toString({
-			chunkModules: false,
-			assets: false
-		}));
-		
-		//Beep for success or errors
-		if (process.env.NODE_ENV === 'dev'){
-			if (stats.hasErrors()){
-				beep(2);
-			}else{
-				beep();
-			}
-		}
-		
-		done();
-	};
-	
-	//Compile and watch for changes if needed
-	global.webpack = options;
-	let pack = webpack(options);
-	if (process.env.NODE_ENV === 'dev'){
-		pack.watch({
-			aggregateTimeout: 200,
-			poll: false
-		}, callback);
-	}else{
-		pack.run(callback);
-	}
-});
+	return gulp.src('builds/client/index.html')
+		.pipe(inject(sorted, { relative: true }))
+    	.pipe(gulp.dest('builds/client'))
+})

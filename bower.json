@@ -1,12 +1,12 @@
 {
-  "name": "MEAN",
-  "description": "MEAN Stack",
+  "name": "MEEN",
+  "description": "MEEN Stack",
   "main": "server/app.js",
   "authors": [
     "Victor Leach <admin@vmlweb.co.uk>"
   ],
   "license": "MIT",
-  "homepage": "",
+  "homepage": "http://vmlweb.co.uk",
   "ignore": [
     "**/.*",
     "node_modules",
@@ -15,6 +15,7 @@
     "tests"
   ],
   "dependencies": {
-    "jquery": "^2.2.4"
+    "jquery": "^3.1.1",
+    "ember": "^2.10.2"
   }
 }

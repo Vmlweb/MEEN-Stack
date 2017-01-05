@@ -15,17 +15,20 @@ require('./tasks/setup.js');
 require('./tasks/dist.js');
 require('./tasks/docs.js');
 require('./tasks/test.js');
+
 //Client
 require('./tasks/client/build.js');
 require('./tasks/client/lint.js');
 require('./tasks/client/test.js');
+require('./tasks/client/watch.js');
+
 //Server
 require('./tasks/server/build.js');
 require('./tasks/server/lint.js');
 require('./tasks/server/test.js');
 require('./tasks/server/watch.js');
 
-//! Main Tasks
+//! Main Task
 gulp.task('default', gulp.series('dev'));
  
 //! Setup
@@ -43,7 +46,7 @@ gulp.task('dev', gulp.series(
 	'clean',
 	'build',
 	'start',
-	gulp.parallel('server.watch', 'app.attach')
+	gulp.parallel('watch', 'app.attach')
 ));
 
 //! Testing
@@ -90,8 +93,9 @@ gulp.task('semantic', gulp.parallel('build.semantic'));
 gulp.task('docs', gulp.parallel('api.docs'));
 gulp.task('lint', gulp.parallel('client.lint', 'server.lint'));
 gulp.task('build', gulp.parallel('client.build', 'server.build', 'build.config'));
+gulp.task('watch', gulp.parallel('client.watch', 'server.watch'));
 
-//Enviroment Variables
+//! Enviroment Variables
 gulp.task('env.dev', function(done) { process.env.NODE_ENV = 'dev'; done(); });
 gulp.task('env.test', function(done) { process.env.NODE_ENV = 'test'; done(); });
 gulp.task('env.dist', function(done) { process.env.NODE_ENV = 'dist'; done(); });
