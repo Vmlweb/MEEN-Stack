@@ -1,0 +1,20 @@
+{
+  "name": "MEAN",
+  "description": "MEAN Stack",
+  "main": "server/app.js",
+  "authors": [
+    "Victor Leach <admin@vmlweb.co.uk>"
+  ],
+  "license": "MIT",
+  "homepage": "",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "^2.2.4"
+  }
+}
