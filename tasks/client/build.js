@@ -71,13 +71,19 @@ gulp.task('client.build.templates', function(){
 
 //Setup webpack for compilation
 gulp.task('client.build.setup', function(done){
-
+	
 	//Create options
 	module.exports.options = {
-		entry: './client/index.js',
+		entry: {
+			index: './client/index.js',
+			vendor: './client/vendor.js'
+		},
 		target: 'web',
 		devtool: 'inline-source-map',
 		plugins: [
+			new webpack.optimize.CommonsChunkPlugin({ 
+				name: 'vendor'
+			}),
 			new webpack.DefinePlugin({
 				'process.env': {
 					'ENV': JSON.stringify(process.env.NODE_ENV),
@@ -113,22 +119,49 @@ gulp.task('client.build.setup', function(done){
 					}).map((lib) => {
 						return path.basename(lib)
 					}),
-				js: [ 'templates.js' ],
+				js: [ ],
 				css: [ 'style.css' ]
 			})
 		],
 		output: {
 			path: './build/client',
-			filename: 'index.js'
+			filename: '[name].js'
 		},
 		resolve: {
-			modules: [ './client', './node_modules' ]
+			modules: [ './client', './node_modules', './bower_components' ],
+			alias: {
+		      ember: path.join(__dirname, '../../ember'),
+		      app: path.join(__dirname, '../../client')
+			}
 		},
 		module: {
 			rules: [{
 				test: /\.js$/,
 				exclude: /(node_modules|bower_components)/,
 				loader: 'babel-loader?presets[]=es2015'
+			},
+			{
+				test: /\.hbs$/,
+				include: /client\/templates/, // or whatever directory you have
+				loader: 'ember-webpack-loaders/htmlbars-loader',
+				query: {
+					appPath: 'client'
+				}
+			}, {
+				test: /client\/index\.js/, // the main app file
+				use: [
+					{
+						loader: 'ember-webpack-loaders/inject-templates-loader',
+						query: {
+							appPath: 'client'
+						}
+					}, {
+						loader: 'ember-webpack-loaders/inject-modules-loader',
+						query: {
+							appPath: 'client'
+						}
+					}
+				]
 			}]
 		}
 	}
