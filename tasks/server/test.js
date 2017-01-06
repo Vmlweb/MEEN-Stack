@@ -38,13 +38,13 @@ gulp.task('server.test.coverage', function(){
 	if (process.env.hasOwnProperty('test') && process.env.test.length > 0){
 		for (i in config.tests[process.env.test]){
 			let tests = config.tests[process.env.test][i];
-			includes.push(path.join('builds/server', tests, '*.js'));
-			includes.push(path.join('!builds/server', tests, '*.test.js'));
+			includes.push(path.join('build/server', tests, '*.js'));
+			includes.push(path.join('!build/server', tests, '*.test.js'));
 		}
 	}else{
 		includes = includes.concat([
-			'builds/server/api/**/*.js',
-			'!builds/server/api/**/*.test.js'
+			'build/server/api/**/*.js',
+			'!build/server/api/**/*.test.js'
 		]);
 	}
 	
@@ -61,19 +61,19 @@ gulp.task('server.test.jasmine', function(done){
 	if (process.env.hasOwnProperty('test') && process.env.test.length > 0){
 		for (i in config.tests[process.env.test]){
 			let tests = config.tests[process.env.test][i];
-			includes.push(path.join('builds/server', tests, '*.test.js'));
+			includes.push(path.join('build/server', tests, '*.test.js'));
 		}
 	}else{
 		includes = includes.concat([
-			'builds/server/tests/*.test.js',
-			'builds/server/**/*.test.js'
+			'build/server/tests/*.test.js',
+			'build/server/**/*.test.js'
 		]);
 	}
 	
 	//Execute tests and generate coverage reports
 	gulp.src([
-		'builds/server/tests/setup.test.js',
-		'builds/server/tests/**/*.test.js'
+		'build/server/tests/setup.test.js',
+		'build/server/tests/**/*.test.js'
 	].concat(includes))
 	.pipe(jasmine({
 		reporter: [

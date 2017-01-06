@@ -59,7 +59,7 @@ chown -R 999:999 certs
 
 ## Directory Structure
 
-- `builds` - Temporary built and compiled files.
+- `build` - Temporary builds and compiled files.
 - `certs` - Security certificates and key files.
 - `client` - Client side website source.
 - `client/app` - Angular bootstrap and app component.
@@ -174,7 +174,7 @@ You can generate a concatenated markdown file from all files with the `.md` exte
 gulp docs
 ```
 
-The documentation will be generated in the `builds/docs` directory.
+The documentation will be generated in the `build/docs` directory.
 
 You can specify custom sets of documentation files through `config.js` which can be generated using the `my_plan.docs` command.
 

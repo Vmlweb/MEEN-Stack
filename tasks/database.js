@@ -103,7 +103,7 @@ gulp.task('database.test', function(done){
 gulp.task('database.mock', function(done){
 	
 	//Search for test files
-	recursive(path.join(__dirname, '../builds/server/tests'), ['!*.test.js', 'setup.test.js'], function (err, files) {
+	recursive(path.join(__dirname, '../build/server/tests'), ['!*.test.js', 'setup.test.js'], function (err, files) {
 		
 		//Define testing capture functions
 		let beforeAlls = [];
@@ -120,7 +120,7 @@ gulp.task('database.mock', function(done){
 		};
 		
 		//Start main app
-		require(path.join(__dirname, '../builds/server/tests/setup.test.js'));
+		require(path.join(__dirname, '../build/server/tests/setup.test.js'));
 		for (i in files){ require(files[i]); }
 		
 		//Run before all functions
@@ -204,7 +204,7 @@ gulp.task('database.reset.config', function(done){
 	        container.modem.demuxStream(stream, process.stdout, process.stderr);
 		
 			//Stream file into container mongo cli
-			fs.createReadStream('builds/mongodb.js', 'binary').pipe(stream).on('end', function(){
+			fs.createReadStream('build/mongodb.js', 'binary').pipe(stream).on('end', function(){
 				done();
 			});
 		});

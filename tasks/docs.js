@@ -15,7 +15,7 @@ const config = require('../config.js');
 //Remove all documentation files
 gulp.task('docs.reset', function(){
 	return del([
-		'builds/docs/**/*'
+		'build/docs/**/*'
 	]);
 });
 
@@ -36,7 +36,7 @@ for (let i in config.docs){
 			//Generate concat documentation
 			return gulp.src(includes)
 				.pipe(concat(i + '.' + moment().format('YYYY-MM-DD') + '.md'))
-				.pipe(gulp.dest('builds/docs'));
+				.pipe(gulp.dest('build/docs'));
 		});
 
 	})(i);

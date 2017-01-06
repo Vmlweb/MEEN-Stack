@@ -39,7 +39,7 @@ gulp.task('server.build.setup', function(done){
 		externals: nodeModules,
 		plugins: [],
 		output: {
-			path: './builds/server',
+			path: './build/server',
 			filename: 'index.js'
 		},
 		resolve: {

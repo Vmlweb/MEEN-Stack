@@ -47,13 +47,13 @@ gulp.task('dist.copy', gulp.parallel('dist.copy.config', 'dist.copy.server', 'di
 //Copy over config files
 gulp.task('dist.copy.config', function(){
 	return gulp.src([
-		'builds/config.js',
-		'builds/package.json',
-		'builds/Dockerfile',
-		'builds/docker-compose.yml',
-		'builds/mongodb.js',
-		'builds/server.sh',
-		'builds/database.sh'
+		'build/config.js',
+		'build/package.json',
+		'build/Dockerfile',
+		'build/docker-compose.yml',
+		'build/mongodb.js',
+		'build/server.sh',
+		'build/database.sh'
 	])
 	.pipe(gulp.dest('dist'));
 });
@@ -61,12 +61,12 @@ gulp.task('dist.copy.config', function(){
 //Copy over server source files
 gulp.task('dist.copy.server', function(){
 	return gulp.src([
-		'builds/server/**/*',
-		'!builds/server/tests/*',
-		'!builds/server/**/*.js.map',
-		'!builds/server/**/*.min.map',
-		'!builds/server/**/*.test.js',
-		'!builds/server/**/*.test.json'
+		'build/server/**/*',
+		'!build/server/tests/*',
+		'!build/server/**/*.js.map',
+		'!build/server/**/*.min.map',
+		'!build/server/**/*.test.js',
+		'!build/server/**/*.test.json'
 	])
 	.pipe(gulp.dest('dist/server'));
 });
@@ -74,12 +74,12 @@ gulp.task('dist.copy.server', function(){
 //Copy over client source files
 gulp.task('dist.copy.client', function(){
 	return gulp.src([
-		'builds/client/**/*',
-		'!builds/client/tests/*',
-		'!builds/client/**/*.js.map',
-		'!builds/client/**/*.min.map',
-		'!builds/client/**/*.test.js',
-		'!builds/client/**/*.test.json'
+		'build/client/**/*',
+		'!build/client/tests/*',
+		'!build/client/**/*.js.map',
+		'!build/client/**/*.min.map',
+		'!build/client/**/*.test.js',
+		'!build/client/**/*.test.json'
 	])
 	.pipe(gulp.dest('dist/client'));
 });

@@ -19,7 +19,7 @@ const config = require('../config.js');
 //Remove all build files
 gulp.task('build.reset', function(){
 	return del([
-		'builds/**/*'
+		'build/**/*'
 	]);
 });
 
@@ -44,7 +44,7 @@ gulp.task('build.config.nodejs', function(){
 		'config.js',
 		'package.json'
 	])
-	.pipe(gulp.dest('builds'));
+	.pipe(gulp.dest('build'));
 });
 
 //Build mongodb.js file
@@ -62,7 +62,7 @@ gulp.task('build.config.mongodb', function(){
 		.pipe(replace('@@DATABASE_AUTH_USERNAME', config.database.auth.username))
 		.pipe(replace('@@DATABASE_AUTH_PASSWORD', config.database.auth.password))
 		.pipe(replace('@@DATABASE_AUTH_DATABASE', config.database.auth.database))
-		.pipe(gulp.dest('builds'));
+		.pipe(gulp.dest('build'));
 });
 
 //Build docker file
@@ -135,5 +135,5 @@ gulp.task('build.config.docker', function(){
 	.pipe(replace('@@HTTPS_PORT_INTERNAL', config.https.port.internal))
 	.pipe(replace('@@HTTP_PORT_EXTERNAL', config.http.port.external))
 	.pipe(replace('@@HTTPS_PORT_EXTERNAL', config.https.port.external))
-	.pipe(gulp.dest('builds'));
+	.pipe(gulp.dest('build'));
 });
