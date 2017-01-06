@@ -4,7 +4,6 @@ const path = require('path')
 const beep = require('beepbeep')
 const fs = require('fs')
 const concat = require('gulp-concat')
-const emberTemplates = require('gulp-ember-templates')
 const webpack = require('webpack')
 const WebpackObfuscator = require('webpack-obfuscator')
 const WebpackHTML = require('html-webpack-plugin')
@@ -20,7 +19,6 @@ let setup = false
 
 - client.build.css
 - client.build.libraries
-- client.build.templates
 - client.build.setup
 - client.build.compile
 */
@@ -29,7 +27,6 @@ let setup = false
 gulp.task('client.build', gulp.series(
 	gulp.parallel(
 		'client.build.libraries',
-		'client.build.templates',
 		'client.build.css',
 		'client.build.setup'
 	),
@@ -47,26 +44,6 @@ gulp.task('client.build.css', function(){
 gulp.task('client.build.libraries', function(){
 	return gulp.src(config.libraries)
 		.pipe(gulp.dest('build/client/libs'))
-})
-
-//Generate precompiled templates file
-gulp.task('client.build.templates', function(){
-	return gulp.src('client/**/*.hbs')
-		.pipe(emberTemplates({
-			name: { replace: /\\/g, with: '/' },
-			compiler: require('../../bower_components/ember/ember-template-compiler'),
-			isHTMLBars: true
-		}))
-		.on('error', function(err){
-			beep(2)
-			console.log(err.stack)
-			this.emit('end')
-		})
-		.pipe(concat('templates.js'))
-		.pipe(gulp.dest('build/client'))
-		.on('end', function(){
-			if (setup){ beep() }
-		})
 })
 
 //Setup webpack for compilation
@@ -108,13 +85,16 @@ gulp.task('client.build.setup', function(done){
 					minifyCSS: true,
 					minifyURLs: true
 				},
-				libraries: config.libraries.filter((lib) => {
+				js: config.libraries.filter((lib) => {
 						return lib.endsWith('.js')
 					}).map((lib) => {
-						return path.basename(lib)
+						return '/libs/' + path.basename(lib)
 					}),
-				js: [  ],
-				css: [ 'style.css' ]
+				css: config.libraries.filter((lib) => {
+						return lib.endsWith('.css')
+					}).map((lib) => {
+						return '/libs/' + path.basename(lib)
+					}).concat([ 'style.css' ])
 			})
 		],
 		output: {
@@ -135,7 +115,8 @@ gulp.task('client.build.setup', function(done){
 				include: /client\/templates/, // or whatever directory you have
 				loader: 'ember-webpack-loaders/htmlbars-loader',
 				query: {
-					appPath: 'client'
+					appPath: 'client',
+					templateCompiler: '../../bower_components/ember/ember-template-compiler.js'
 				}
 			}, {
 				test: /client\/index\.js/, // the main app file

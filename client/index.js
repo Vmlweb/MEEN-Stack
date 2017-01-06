@@ -1,11 +1,4 @@
-import Ember from 'ember'
-import Router from './router'
+import Router from './router.js'
 
-window.App = Ember.Application.create({
-  rootElement: '#ember-app',
-  ready() {
-    document.getElementById('ember-app').innerHTML = '';
-  }
-})
-
-App.Router = Router
+window.App = Ember.Application.create();
+window.App.Router = Router

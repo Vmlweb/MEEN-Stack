@@ -8,10 +8,6 @@
 		<% } %>
 	</head>
 	<body>
-		<div id="ember-app"></div>
-		<% for (key in htmlWebpackPlugin.options.libraries) { %>
-			<script type="text/javascript" src="libs/<%= htmlWebpackPlugin.options.libraries[key] %>"></script>
-		<% } %>
 		<% for (key in htmlWebpackPlugin.options.js) { %>
 			<script type="text/javascript" src="<%= htmlWebpackPlugin.options.js[key] %>"></script>
 		<% } %>
