@@ -13,15 +13,17 @@ const database = config.database.auth.database
 const repl = 'replicaSet=' + config.database.repl.name + '&ssl=' + config.database.ssl.enabled
 
 //Create new connection to database
-mongoose.connect('mongodb://' + auth + '@' + nodes.join(',') + '/' + database + '?' + repl, { 
-	replset: {
-		sslValidate: config.database.ssl.validate,
-		sslKey: config.database.ssl.validate ? fs.readFileSync(path.join('../../certs', config.database.ssl.key)) : null,
-		sslCert: config.database.ssl.validate ? fs.readFileSync(path.join('../../certs', config.database.ssl.cert)) : null,
-		sslCA: config.database.ssl.validate ? fs.readFileSync(path.join('../../certs', config.database.ssl.ca)) : null,
-		readPreference: config.database.repl.read || 'nearest'
-	}
-})
+setTimeout(() => {
+	mongoose.connect('mongodb://' + auth + '@' + nodes.join(',') + '/' + database + '?' + repl, { 
+		replset: {
+			sslValidate: config.database.ssl.validate,
+			sslKey: config.database.ssl.validate ? fs.readFileSync(path.join('./certs', config.database.ssl.key)) : null,
+			sslCert: config.database.ssl.validate ? fs.readFileSync(path.join('./certs', config.database.ssl.cert)) : null,
+			sslCA: config.database.ssl.validate ? fs.readFileSync(path.join('./certs', config.database.ssl.ca)) : null,
+			readPreference: config.database.repl.read || 'nearest'
+		}
+	})
+}, 200)
 
 //Listen for database connection changes
 let connection = mongoose.connection

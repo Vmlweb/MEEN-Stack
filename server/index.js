@@ -9,7 +9,7 @@ import * as app from 'app'
 import * as api_v1 from 'api_v1'
 
 //Load client frontend
-app.express.use('/', express.static('../client'))
+app.express.use('/', express.static('./client'))
 
 log.info('Loaded static client route')
 

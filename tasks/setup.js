@@ -5,28 +5,47 @@ const docker = require('dockerode')();
 const config = require('../config.js');
 
 /*! Tasks 
+- setup.certs
+- setup.clean
+	
 - setup.dependant
 - setup.dependant.npm
 - setup.dependant.semantic
 - setup.dependant.bower
-
-- setup.typings
-- setup.typings.server
-- setup.typings.client
+- setup.dependant.zip
 
 - setup.docker
 - setup.docker.nodejs
 - setup.docker.mongodb
-
-- setup.certs
-
-- setup.clean
 */
+
+//Certificate subject string
+let subj = '"/C=' + config.certs.details.country + '/ST=' + config.certs.details.state + '/L=' + config.certs.details.city + '/O=' + config.certs.details.organisation + '/CN=' + config.certs.details.hostname + '"';
+
+//Generate certificates and key files
+gulp.task('setup.certs', shell.task([
+	'openssl req -new -newkey rsa:2048 -days 1825 -nodes -x509 -subj ' + subj + ' -keyout ' + config.https.ssl.key + ' -out ' + config.https.ssl.cert,
+	'openssl req -new -newkey rsa:2048 -days 1825 -nodes -x509 -subj ' + subj + ' -keyout ' + config.database.ssl.key + ' -out ' + config.database.ssl.cert,
+	'openssl rand -base64 741 > ' + config.database.repl.key + ' && chmod 600 ' + config.database.repl.key,
+	'cat ' + config.database.ssl.key + ' ' + config.database.ssl.cert + ' > ' + config.database.ssl.pem,
+	'sudo chown 999:999 ' + config.https.ssl.cert + ' ' + config.database.ssl.cert + ' ' + config.database.repl.key + ' ' + config.database.ssl.pem + ' || true'
+],{
+	verbose: true,
+	cwd: 'certs'
+}));
+
+//Clean docker volumes
+gulp.task('setup.clean', shell.task([
+	'docker images -q | xargs docker rmi || true',
+	'docker volume rm $(docker volume ls -qf dangling=true) || true'
+],{
+	verbose: true,
+}));
 
 //! Dependancies
 gulp.task('setup.dependant', gulp.series(
 	gulp.series('setup.dependant.npm'),
-	gulp.parallel('setup.dependant.semantic', 'setup.dependant.bower')
+	gulp.parallel('setup.dependant.semantic', 'setup.dependant.bower', 'setup.dependant.zip')
 ));
 
 //Install npm dependancies
@@ -49,23 +68,15 @@ gulp.task('setup.dependant.semantic', shell.task([
 //Install bower dependancies
 gulp.task('setup.dependant.bower', shell.task([
 	'bower install --config.analytics=false --allow-root'
-]));
-
-//! Typings Typings
-gulp.task('setup.typings', gulp.parallel('setup.typings.server', 'setup.typings.client'));
-
-//Install typings server typings
-gulp.task('setup.typings.server', shell.task([
-	'typings install'
-],{
-	cwd: 'server'
+], {
+	verbose: true
 }));
 
-//Install typings client typings
-gulp.task('setup.typings.client', shell.task([
-	'typings install'
-],{
-	cwd: 'client'
+//Install zip dependancies
+gulp.task('setup.dependant.zip', shell.task([
+	'apt-get install -y zip'
+], {
+	verbose: true
 }));
 
 //! Docker Dependancies
@@ -98,30 +109,3 @@ gulp.task('setup.docker.nodejs', function(done){
 		});
 	});
 });
-
-//! Certificates
-
-//Certificate subject string
-let subj = '"/C=' + config.certs.details.country + '/ST=' + config.certs.details.state + '/L=' + config.certs.details.city + '/O=' + config.certs.details.organisation + '/CN=' + config.certs.details.hostname + '"';
-
-//Generate certificates and key files
-gulp.task('setup.certs', shell.task([
-	'openssl req -new -newkey rsa:2048 -days 1825 -nodes -x509 -subj ' + subj + ' -keyout ' + config.https.ssl.key + ' -out ' + config.https.ssl.cert,
-	'openssl req -new -newkey rsa:2048 -days 1825 -nodes -x509 -subj ' + subj + ' -keyout ' + config.database.ssl.key + ' -out ' + config.database.ssl.cert,
-	'openssl rand -base64 741 > ' + config.database.repl.key + ' && chmod 600 ' + config.database.repl.key,
-	'cat ' + config.database.ssl.key + ' ' + config.database.ssl.cert + ' > ' + config.database.ssl.pem,
-	'sudo chown 999:999 ' + config.https.ssl.cert + ' ' + config.database.ssl.cert + ' ' + config.database.repl.key + ' ' + config.database.ssl.pem + ' || true'
-],{
-	verbose: true,
-	cwd: 'certs'
-}));
-
-//! Clean
-
-//Clean docker volumes
-gulp.task('setup.clean', shell.task([
-	'docker images -q | xargs docker rmi || true',
-	'docker volume rm $(docker volume ls -qf dangling=true) || true'
-],{
-	verbose: true,
-}));

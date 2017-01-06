@@ -5,8 +5,6 @@ const del = require('del');
 const docker = require('dockerode')();
 const uglify = require('gulp-uglify')
 const beep = require('beepbeep');
-const harmony = require('uglify-js-harmony')
-const obfuscator = require('gulp-js-obfuscator')
 
 //Config
 let config = require('../config.js');
