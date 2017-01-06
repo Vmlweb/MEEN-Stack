@@ -34,7 +34,7 @@ gulp.task('default', gulp.series('dev'));
 //! Setup
 gulp.task('setup', gulp.series(
 	'stop',
-	gulp.parallel('setup.dependant', 'setup.typings', 'setup.docker', 'setup.certs'),
+	gulp.parallel('setup.dependant', 'setup.docker', 'setup.certs'),
 	'build.semantic',
 	'database.reset'
 ));
