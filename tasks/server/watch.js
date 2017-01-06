@@ -1,31 +1,32 @@
 //Modules
-const gulp = require('gulp');
+const gulp = require('gulp')
 
 /*! Tasks 
 - server.watch
 
-- server.watch.source
-- server.watch.typescript
+- server.watch.misc
+- server.watch.js
 */
 
-//! Development
-gulp.task('server.watch', gulp.parallel('server.watch.source', 'server.watch.typescript'));
+//! Watch
+gulp.task('server.watch', gulp.parallel(
+	'server.watch.misc',
+	'server.watch.js'
+))
 
 //Watch for source file changes
-gulp.task('server.watch.source', function(done){
+gulp.task('server.watch.misc', function(done){
 	gulp.watch([
 		'server/**/*',
-		'!server/**/*.ts',
-		'!server/**/*.d.ts'
-	], gulp.series('app.stop', 'server.build.source', 'app.start', 'app.attach'));
-	done();
-});
+		'!server/**/*.js'
+	], gulp.series('server.build'))
+	done()
+})
 
-//Watch for typescript file changes
-gulp.task('server.watch.typescript', function(done){
+//Watch for source file changes
+gulp.task('server.watch.js', function(done){
 	gulp.watch([
-		'server/**/*.ts',
-		'!server/**/*.d.ts'
-	], gulp.series('app.stop', 'server.build.typescript', 'app.start', 'app.attach'));
-	done();
-});
+		'server/**/*.js'
+	], gulp.series('server.build'))
+	done()
+})

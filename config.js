@@ -63,7 +63,7 @@ module.exports = {
 		'bower_components/jquery/dist/jquery.min.map',
 		'bower_components/ember/ember.debug.js',
 		
-		//SemanticUI
+		//Semantic UI
 		'semantic/dist/semantic.min.js',
 		'semantic/dist/semantic.min.css',
 		'semantic/dist/*/**/*',

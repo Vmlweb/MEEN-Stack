@@ -1,7 +1,7 @@
 {
   "name": "MEEN",
   "description": "MEEN Stack",
-  "main": "server/app.js",
+  "main": "server/index.js",
   "authors": [
     "Victor Leach <admin@vmlweb.co.uk>"
   ],

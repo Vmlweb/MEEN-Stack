@@ -51,7 +51,7 @@ gulp.task('app.start', function(done){
 	docker.createContainer({
 		Image: 'node:slim',
 		WorkingDir: '/home',
-		Cmd: ['node', '/home/server/app.js'],
+		Cmd: ['node', '/home/server/index.js'],
 		name: config.name + '_app',
 		Tty: false,
 		ExposedPorts: internalPorts,

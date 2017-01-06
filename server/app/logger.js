@@ -1,34 +1,34 @@
 //Modules
-const fs = require('fs');
-const path = require('path');
-const moment = require('moment');
-const winston = require('winston');
-const winstonRotate = require('winston-daily-rotate-file');
+import fs from 'fs'
+import path from 'path'
+import moment from 'moment'
+import winston from 'winston'
+import rotate from 'winston-daily-rotate-file'
 
 //Create log paths
-let errorPath = path.join(__logs, 'errors');
-let infoPath = path.join(__logs, 'info');
-let accessPath = path.join(__logs, 'access');
+const errorPath = '../../errors'
+const infoPath = '../../info'
+const accessPath = '../../access'
 
 //Check if directories exist and create
-try { fs.statSync(errorPath); } catch(e) { fs.mkdirSync(errorPath); }
-try { fs.statSync(infoPath); } catch(e) { fs.mkdirSync(infoPath); }
-try { fs.statSync(accessPath); } catch(e) { fs.mkdirSync(accessPath); }
+try { fs.statSync(errorPath) } catch(e) { fs.mkdirSync(errorPath) }
+try { fs.statSync(infoPath) } catch(e) { fs.mkdirSync(infoPath) }
+try { fs.statSync(accessPath) } catch(e) { fs.mkdirSync(accessPath) }
 
-//Logging output formatter
-let formatter = function(options){
-	let format = '(' + moment().format('YYYY-MM-DD_HH-mm-ss') + ') ';
-    format += '[' + winston.config.colorize(options.level,options.level.toUpperCase()) + '] ';
-    format += options.message;
+//Setup logging output formatter
+const formatter = (options) => {
+	let format = '(' + moment().format('YYYY-MM-DD_HH-mm-ss') + ') '
+    format += '[' + winston.config.colorize(options.level,options.level.toUpperCase()) + '] '
+    format += options.message
     if (options.meta.length > 0){
-        format += JSON.stringify(options.meta);
+        format += JSON.stringify(options.meta)
     }
-    return format;
-};
+    return format
+}
 
 //Setup log file transports
 let transports = [
-	new winstonRotate({
+	new rotate({
 	    name: 'error',
 	    level: 'error',
 	    filename: path.join(errorPath, 'error.json'),
@@ -36,7 +36,7 @@ let transports = [
         json: true,
         colorize: false,
     }),
-    new winstonRotate({
+    new rotate({
 	    name: 'info',
 	    level: 'info',
 	    filename: path.join(infoPath, 'info.json'),
@@ -44,7 +44,7 @@ let transports = [
         json: true,
         colorize: false,
     }),
-    new winstonRotate({
+    new rotate({
 	    name: 'verbose',
 	    level: 'verbose',
 	    filename: path.join(accessPath, 'access.json'),
@@ -52,10 +52,10 @@ let transports = [
         json: true,
         colorize: false,
     }),
-];
+]
 
 //Setup log console transports
-if (process.env.NODE_ENV != 'silent'){
+if (process.env.NODE_ENV !== 'silent'){
 	transports.push(
 		new winston.transports.Console({
 		    name: 'console',
@@ -63,38 +63,39 @@ if (process.env.NODE_ENV != 'silent'){
             json: false,
             colorize: true,
             formatter: formatter
-        }));
-    transports.push(
+        }),
         new winston.transports.Console({
 		    name: 'consoleError',
             level: 'error',
             json: true,
             colorize: true,
             formatter: formatter
-        }));
+        })
+    )
 }
 
-//Setup winston logger and stream transports
-let logger = new winston.Logger({
+//Setup logger with transports
+const logger = new winston.Logger({
     transports: transports,
     exitOnError: false
-});
+})
 
-//Globalize new logger
-log = {};
-log.stream = {
-	write: function(message, encoding){
-        logger.verbose(message.replace(/^\s+|\s+$/g, ''));
-    }
-};
-log.error = logger.error;
-log.warn = logger.warn;
-log.info = logger.info;
-log.verbose = logger.verbose;
-log.debug = logger.debug;
-log.silly = logger.silly;
+//Globalize wrapped logger
+global.log = {
+	error: logger.error,
+	warn: logger.warn,
+	info: logger.info,
+	verbose: logger.verbose,
+	debug: logger.debug,
+	silly: logger.silly,
+	stream: {
+		write: (message, encoding) => {
+	        logger.verbose(message.replace(/^\s+|\s+$/g, ''))
+	    }
+	}
+}
 
-//Tell the world it's so!
-log.info('Logger initialized');
+//TELL THE WORLD IT'S READY!!!!!!!!!!!
+log.info('Logger initialized')
 
-module.exports = logger;
+export default logger

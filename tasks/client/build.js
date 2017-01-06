@@ -62,10 +62,10 @@ gulp.task('client.build.source.misc', function(){
 		'!client/**/*.hbs',
 		'!client/**/*.js'
 	])
-		.pipe(gulp.dest('builds/client'))
-		.on('end', function(){
-			if (setup){ beep(); }
-		})
+	.pipe(gulp.dest('builds/client'))
+	.on('end', function(){
+		if (setup){ beep(); }
+	})
 })
 
 //Copy client css files
@@ -140,7 +140,7 @@ module.exports.bundle = function(){
 			console.log(err.stack);
 			this.emit('end');
 		})
-		.pipe(source('app.js'))
+		.pipe(source('index.js'))
 		.pipe(buffer())
 		.pipe(sourcemap.init({ loadMaps: true }))
 		.pipe(sourcemap.write('./'))

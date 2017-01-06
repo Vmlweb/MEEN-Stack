@@ -71,8 +71,8 @@ gulp.task('dist', gulp.series(
 	'clean',
 	'semantic',
 	'build',
-	'dist.copy',
-	'dist.build'
+	'dist.build',
+	'dist.image'
 ));
 
 //! Database & App
