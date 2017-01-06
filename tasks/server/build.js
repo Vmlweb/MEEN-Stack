@@ -1,67 +1,100 @@
 //Modules
 const gulp = require('gulp')
 const path = require('path')
+const beep = require('beepbeep')
 const fs = require('fs')
-const stream = require('webpack-stream')
 const webpack = require('webpack')
-const named = require('vinyl-named')
-const through = require('through2')
-const sourcemaps = require('gulp-sourcemaps')
 const obfuscator = require('webpack-obfuscator')
 
 //Config
-let config = require('../../config.js')
-
-//Compile list of node modules for webpack
-let nodeModules = {}
-fs.readdirSync('node_modules').filter(function(x) { return ['.bin'].indexOf(x) === -1 }).forEach(function(mod) { nodeModules[mod] = 'commonjs ' + mod })
-nodeModules['config'] = 'commonjs ../config.js'
+const config = require('../../config.js')
+module.exports = { webpack: undefined, options: undefined }
 
 /*! Tasks
 - server.build
+
+- server.build.setup
+- server.build.compile
 */
 
 //! Build
+gulp.task('server.build', gulp.series(
+	'server.build.setup',
+	'server.build.compile'
+))
 
-gulp.task('server.build', function(){
+//Setup webpack for compilation
+gulp.task('server.build.setup', function(done){
 	
-	let plugins = [
-	//	new webpack.optimize.UglifyJsPlugin(),
-	//	new obfuscator()
-	];
+	//Generate list of file paths to exclude
+	let nodeModules = {}
+	fs.readdirSync('node_modules').filter(function(x) { return ['.bin'].indexOf(x) === -1 }).forEach(function(mod) { nodeModules[mod] = 'commonjs ' + mod })
+	nodeModules['config'] = 'commonjs ../config.js'
 	
+	//Create options
+	module.exports.options = {
+		entry: './server/index.js',
+		target: 'node',
+		devtool: 'inline-source-map',
+		externals: nodeModules,
+		plugins: [],
+		output: {
+			path: './builds/server',
+			filename: 'index.js'
+		},
+		resolve: {
+			modules: [ './server', './node_modules' ]
+		},
+		module: {
+			rules: [{
+				test: /\.js$/,
+				exclude: /(node_modules|bower_components)/,
+				loader: 'babel-loader',
+				query: {
+					presets: ['es2015']
+				}
+			}]
+		},
+	}
 	
+	//Add plugins for distribution
+	if (process.env.NODE_ENV === 'dist'){
+		module.exports.options.plugins.push(
+			new webpack.optimize.UglifyJsPlugin(),
+			new obfuscator()
+		)
+	}
 	
-	return gulp.src('./server/index.js')
-		.pipe(named())
-		.pipe(stream({
-			target: 'node',
-			devtool: 'inline-source-map',
-			externals: nodeModules,
-			plugins: plugins,
-			output: {
-				filename: 'index.js'
-			},
-			resolve: {
-				modules: [ 'server', 'node_modules' ]
-			},
-			module: {
-				rules: [{
-					test: /\.js$/,
-					exclude: /(node_modules|bower_components)/,
-					loader: 'babel-loader',
-					query: {
-						presets: ['es2015']
-					}
-				}]
-			},
-		}, webpack))
-		.pipe(sourcemaps.init({loadMaps: true}))
-		.pipe(through.obj(function (file, enc, cb) {
-			var isSourceMap = /\.map$/.test(file.path);
-			if (!isSourceMap) this.push(file);
-			cb();
+	//Remove source maps for distribution
+	if (process.env.NODE_ENV === 'dist'){
+		delete module.exports.options.devtool
+	}
+	
+	//Create webpack compiler with options
+	module.exports.webpack = webpack(module.exports.options)
+	
+	done()
+})
+
+//Compile any changed files in webpack
+gulp.task('server.build.compile', function(done){
+	module.exports.webpack.run(function(err, stats){
+		
+		//Log stats from build
+		console.log(stats.toString({
+			chunkModules: false,
+			assets: false
 		}))
-		.pipe(sourcemaps.write('.'))
-		.pipe(gulp.dest('builds/server'))
+		
+		//Beep for success or errors
+		if (process.env.NODE_ENV === 'dev'){
+			if (stats.hasErrors()){
+				beep(2)
+			}else{
+				beep()
+			}
+		}
+		
+		done(err)
+	})
 })
