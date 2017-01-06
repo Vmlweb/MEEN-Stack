@@ -24,14 +24,15 @@ mongoose.connect('mongodb://' + auth + '@' + nodes.join(',') + '/' + database + 
 })
 
 //Listen for database connection changes
-mongoose.connection.on('error', function(error){
+let connection = mongoose.connection
+connection.on('error', function(error){
 	log.error('Error connecting to database at ' + nodes.join(','), error.message)
 })
-mongoose.connection.once('open', function(){
+connection.once('open', function(){
 	log.info('Connected ' + (config.database.ssl.enabled ? 'securely ' : '' ) + 'to database at ' + nodes.join(','))
 })
-mongoose.connection.on('close', function(){
+connection.on('close', function(){
 	log.info('Database connection ended and stream closed')
 })
 
-export { mongoose, mongoose.connection as mongooseConnection }
+export { mongoose, connection as mongooseConnection }

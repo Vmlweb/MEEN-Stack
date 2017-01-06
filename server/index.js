@@ -62,6 +62,8 @@ const shutdown = (callback) => {
 
 			//MongoDB
 			if (app.mongooseConnection){
+				
+				//Destroy database connections
 				if (config.database.repl.nodes.length > 0){
 					app.mongooseConnection.close(() => {
 						done()
