@@ -1,7 +1,7 @@
 //Modules
 import moment from 'moment';
 
-export default class Time{
+export class Time{
 
 	//Init with default time format	
 	constructor(format){

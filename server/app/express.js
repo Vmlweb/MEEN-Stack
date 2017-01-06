@@ -79,10 +79,6 @@ if (config.https.hostname.length > 0 && config.https.ssl.key.length > 0 && confi
 	log.info('HTTPS listening at ' + config.https.hostname + ':' + config.https.port.internal)
 }
 
-//Server static client files
-app.use(express.static('../../client'))
-
-log.info('Loaded static client route')
 /*
 //Load api calls from file
 recursive(__api, function (err, files) {

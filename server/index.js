@@ -2,12 +2,18 @@
 import config from 'config'
 import path from 'path'
 import async from 'async'
+import express from 'express'
 
 //Includes
 import * as app from 'app'
 import * as api_v1 from 'api_v1'
 
-//Load api versions
+//Load client frontend
+app.express.use('/', express.static('../client'))
+
+log.info('Loaded static client route')
+
+//Load backend api
 app.express.use('/api/v1', api_v1.router)
 
 log.info('Loaded REST API endpoints');

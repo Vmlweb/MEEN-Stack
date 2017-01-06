@@ -22,13 +22,15 @@ let config = require('../config.js');
 - dist.copy.client
 */
 
-//Empty distribution directory
+//Remove all dist files
 gulp.task('dist.reset', function(){
-	return del(['dist/**/*']);
+	return del([
+		'dist/**/*'
+	]);
 });
 
-//Build the docker image for app
-gulp.task('dist.image', shell.task([
+//Build the docker images and app
+gulp.task('dist.build', shell.task([
 	'docker build -t ' + config.name + '_app $PWD',
 	'docker save ' + config.name + '_app > ' + config.name + '_app.tar',
 	'zip ' + config.name + '_app.zip ' + config.name + '_app.tar',
@@ -39,17 +41,11 @@ gulp.task('dist.image', shell.task([
 	cwd: 'dist'
 }));
 
-//! Build
-gulp.task('dist.build', gulp.parallel(
-	'dist.build.config',
-	'dist.build.libs',
-	'dist.build.js.server',
-	'dist.build.js.client',
-	'dist.build.js.clien2t'
-));
+//! Copy
+gulp.task('dist.copy', gulp.parallel('dist.copy.config', 'dist.copy.server', 'dist.copy.client'));
 
 //Copy over config files
-gulp.task('dist.build.config', function(){
+gulp.task('dist.copy.config', function(){
 	return gulp.src([
 		'builds/config.js',
 		'builds/package.json',
@@ -63,49 +59,27 @@ gulp.task('dist.build.config', function(){
 });
 
 //Copy over server source files
-gulp.task('dist.build.libs', function(done){
-	return gulp.src('builds/client/libs/**/*.js')
-		.pipe(gulp.dest('dist/client/libs'));
-});
-
-//Copy over server source files
-gulp.task('dist.build.js.server', function(done){
-	done();
-	return;
-	
-	return gulp.src('builds/server/**/*.js')
-		.pipe(uglify())
-		.on('error', function(err){
-			beep(2);
-			console.log(err);
-		})
-		.pipe(gulp.dest('dist/server'));
-});
-
-//Copy over server source files
-gulp.task('dist.build.js.clien2t', function(){
+gulp.task('dist.copy.server', function(){
 	return gulp.src([
-		'builds/server/**/*.js'
+		'builds/server/**/*',
+		'!builds/server/tests/*',
+		'!builds/server/**/*.js.map',
+		'!builds/server/**/*.min.map',
+		'!builds/server/**/*.test.js',
+		'!builds/server/**/*.test.json'
 	])
-	.pipe(uglify())
-	.on('error', function(err){
-		beep(2);
-		console.log(err);
-	})
 	.pipe(gulp.dest('dist/server'));
 });
 
-//Copy over server source files
-gulp.task('dist.build.js.client', function(){
+//Copy over client source files
+gulp.task('dist.copy.client', function(){
 	return gulp.src([
-		'builds/client/**/*.js',
-		'!builds/client/libs/**/*.js'
+		'builds/client/**/*',
+		'!builds/client/tests/*',
+		'!builds/client/**/*.js.map',
+		'!builds/client/**/*.min.map',
+		'!builds/client/**/*.test.js',
+		'!builds/client/**/*.test.json'
 	])
-	.pipe(uglify())
-	.pipe(obfuscator())
-	.on('error', function(err){
-		beep(2);
-		console.log(err);
-	})
 	.pipe(gulp.dest('dist/client'));
 });
