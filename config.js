@@ -59,13 +59,13 @@ module.exports = {
 	libraries: [
 		
 		//jQuery & Ember
-	//	'bower_components/jquery/dist/jquery.min.js',
-	//	'bower_components/jquery/dist/jquery.min.map',
-		//'bower_components/ember/ember.debug.js',
+		'bower_components/jquery/dist/jquery.min.js',
+		'bower_components/jquery/dist/jquery.min.map',
+		'bower_components/ember/ember.min.js',
 		
 		//Semantic UI
-	//	'semantic/dist/semantic.min.js',
-	//	'semantic/dist/semantic.min.css',
+		'semantic/dist/semantic.min.js',
+		'semantic/dist/semantic.min.css',
 		'semantic/dist/*/**/*',
 		'!semantic/dist/components/**/*'
 	],

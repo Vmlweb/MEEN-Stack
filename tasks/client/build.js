@@ -74,16 +74,10 @@ gulp.task('client.build.setup', function(done){
 	
 	//Create options
 	module.exports.options = {
-		entry: {
-			index: './client/index.js',
-			vendor: './client/vendor.js'
-		},
+		entry: './client/index.js',
 		target: 'web',
 		devtool: 'inline-source-map',
 		plugins: [
-			new webpack.optimize.CommonsChunkPlugin({ 
-				name: 'vendor'
-			}),
 			new webpack.DefinePlugin({
 				'process.env': {
 					'ENV': JSON.stringify(process.env.NODE_ENV),
@@ -119,20 +113,16 @@ gulp.task('client.build.setup', function(done){
 					}).map((lib) => {
 						return path.basename(lib)
 					}),
-				js: [ ],
+				js: [  ],
 				css: [ 'style.css' ]
 			})
 		],
 		output: {
 			path: './build/client',
-			filename: '[name].js'
+			filename: 'index.js'
 		},
 		resolve: {
-			modules: [ './client', './node_modules', './bower_components' ],
-			alias: {
-		      ember: path.join(__dirname, '../../ember'),
-		      app: path.join(__dirname, '../../client')
-			}
+			modules: [ './client', './node_modules', './bower_components' ]
 		},
 		module: {
 			rules: [{
