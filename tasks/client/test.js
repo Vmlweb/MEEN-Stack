@@ -36,7 +36,7 @@ gulp.task('client.test.karma', function(done){
 	for (let item in config.libraries){
 		libs.push({
 			included: path.extname(config.libraries[item]) === '.js',
-			pattern: path.join('./builds/client/libs/', path.basename(config.libraries[item]))
+			pattern: path.join('./build/client/libs/', path.basename(config.libraries[item]))
 		});
 	}
 	

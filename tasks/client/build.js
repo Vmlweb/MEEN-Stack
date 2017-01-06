@@ -2,191 +2,176 @@
 const gulp = require('gulp')
 const path = require('path')
 const beep = require('beepbeep')
+const fs = require('fs')
 const concat = require('gulp-concat')
-const template = require('gulp-ember-templates')
-const sourcemap = require('gulp-sourcemaps')
-const browserify = require('browserify')
-const babelify = require('babelify')
-const source = require('vinyl-source-stream')
-const buffer = require('vinyl-buffer')
-const inject = require('gulp-inject')
-const sort = require('sort-stream')
-const watchify = require('watchify')
-const eslint = require('gulp-eslint')
+const emberTemplates = require('gulp-ember-templates')
+const webpack = require('webpack')
+const WebpackObfuscator = require('webpack-obfuscator')
+const WebpackHTML = require('html-webpack-plugin')
+const WebpackFavicons = require('favicons-webpack-plugin')
 
 //Config
-let config = require('../../config.js')
-let setup = false;
+const config = require('../../config.js')
+module.exports = { webpack: undefined, options: undefined }
+let setup = false
 
-/*! Tasks 
+/*! Tasks
 - client.build
 
-- client.build.source
-- client.build.source.index
-- client.build.source.misc
-- client.build.source.css
-- client.build.source.libs
-- client.build.source.templates
-- client.build.source.js
-
-- client.build.inject
+- client.build.css
+- client.build.libraries
+- client.build.templates
+- client.build.setup
+- client.build.compile
 */
 
 //! Build
 gulp.task('client.build', gulp.series(
-	'client.build.source',
-	'client.build.inject'
+	gulp.parallel(
+		'client.build.libraries',
+		'client.build.templates',
+		'client.build.css',
+		'client.build.setup'
+	),
+	'client.build.compile'
 ))
 
-//! Source
-gulp.task('client.build.source', gulp.parallel(
-	'client.build.source.index',
-	'client.build.source.misc',
-	'client.build.source.css',
-	'client.build.source.libs',
-	'client.build.source.templates',
-	'client.build.source.js'
-))
-
-//Copy misc client files
-gulp.task('client.build.source.index', function(){
-	return gulp.src('client/index.html')
-		.pipe(gulp.dest('builds/client'))
-})
-
-//Copy misc client files
-gulp.task('client.build.source.misc', function(){
-	return gulp.src([
-		'client/**/*',
-		'!client/**/*.css',
-		'!client/**/*.hbs',
-		'!client/**/*.js'
-	])
-	.pipe(gulp.dest('builds/client'))
-	.on('end', function(){
-		if (setup){ beep(); }
-	})
-})
-
-//Copy client css files
-gulp.task('client.build.source.css', function(){
+//Copy client library files
+gulp.task('client.build.css', function(){
 	return gulp.src('client/**/*.css')
-		.pipe(concat('app.css'))
-		.pipe(gulp.dest('builds/client'))
-		.on('end', function(){
-			if (setup){ beep(); }
-		})
+		.pipe(concat('style.css'))
+		.pipe(gulp.dest('build/client'))
 })
 
 //Copy client library files
-gulp.task('client.build.source.libs', function(){
+gulp.task('client.build.libraries', function(){
 	return gulp.src(config.libraries)
-		.pipe(gulp.dest('builds/client/libs'))
+		.pipe(gulp.dest('build/client/libs'))
 })
 
 //Generate precompiled templates file
-gulp.task('client.build.source.templates', function(){
+gulp.task('client.build.templates', function(){
 	return gulp.src('client/**/*.hbs')
-		.pipe(template({
+		.pipe(emberTemplates({
+			name: { replace: /\\/g, with: '/' },
 			compiler: require('../../bower_components/ember/ember-template-compiler'),
 			isHTMLBars: true
 		}))
 		.on('error', function(err){
-			beep(2);
-			console.log(err.stack);
-			this.emit('end');
+			beep(2)
+			console.log(err.stack)
+			this.emit('end')
 		})
 		.pipe(concat('templates.js'))
-		.pipe(gulp.dest('builds/client'))
+		.pipe(gulp.dest('build/client'))
 		.on('end', function(){
-			if (setup){ beep(); }
+			if (setup){ beep() }
 		})
 })
 
-module.exports = {};
+//Setup webpack for compilation
+gulp.task('client.build.setup', function(done){
 
-//Setup browserify with configurations
-module.exports.browserify = browserify(Object.assign({}, watchify.args, {
-	entries: 'client/index.js',
-	debug: true,
-	insertGlobalVars: {
-		ENV: function(file, dir){ JSON.stringify(process.env.NODE_ENV) },
-		CONFIG: function(file, dir){ JSON.stringify(config) }
-	}
-}))
-
-//Setup watchify to monitor and update build live
-module.exports.watchify = function(){
-	module.exports.browserify = watchify(module.exports.browserify);
-	module.exports.browserify.on('update', function(){
-		module.exports.bundle()
-	});
-	module.exports.browserify.on('log', function(log){
-		console.log(log);
-	});
-	module.exports.bundle();
-	setup = true;
-}
-
-//Setup build and source map pipeline
-module.exports.bundle = function(){
-	return module.exports.browserify
-		.transform(babelify.configure({
-			presets: ['es2015']
-		}))
-		.bundle()
-		.on('error', function(err){
-			beep(2);
-			console.log(err.stack);
-			this.emit('end');
-		})
-		.pipe(source('index.js'))
-		.pipe(buffer())
-		.pipe(sourcemap.init({ loadMaps: true }))
-		.pipe(sourcemap.write('./'))
-    	.pipe(gulp.dest('builds/client'))
-		.on('end', function(){
-			if (setup){ beep(); }
-		})
-}
-
-//Generated compiled client javascript file
-gulp.task('client.build.source.js', module.exports.bundle)
-
-//Inject js and css files into html
-gulp.task('client.build.inject', function(){
-	
-	//Create list of library filenames
-	let libs = []
-	for (let i in config.libraries){
-		libs.push(path.basename(config.libraries[i]))
-	}
-	
-	//Find and sort injectable files by library order
-	let sorted = gulp.src([
-		'builds/client/libs/**/*.js',
-		'builds/client/libs/**/*.css',
-		'builds/client/*.css',
-		'builds/client/*.js'
-	], { read: false }).pipe(sort(function(a, b){
-		
-		//Check whether filename exists in libraries and return order
-		let index1 = libs.indexOf(path.basename(a.path))
-		let index2 = libs.indexOf(path.basename(b.path))
-		
-		//Return copmarison result
-		if (index1 == -1 || index2 == -1){
-			return -1
-		}else if (index1 > index2){
-			return 1
-		}else if (index1 < index2){
-			return -1
-		}else{
-			return 0
+	//Create options
+	module.exports.options = {
+		entry: './client/index.js',
+		target: 'web',
+		devtool: 'inline-source-map',
+		plugins: [
+			new webpack.DefinePlugin({
+				'process.env': {
+					'ENV': JSON.stringify(process.env.NODE_ENV),
+					'CONFIG': JSON.stringify(config)
+				}
+			}),
+			new WebpackFavicons({
+				title: config.name,
+				logo: './client/favicon.png',
+				prefix: 'favicons/',
+				icons: {
+					appleStartup: false,
+					firefox: false
+				}
+			}),
+			new WebpackHTML({
+				title: config.name,
+				template: './client/index.ejs',
+				minify: {
+					removeComments: true,
+					collapseWhitespace: true,
+					removeRedundantAttributes: true,
+					useShortDoctype: true,
+					removeEmptyAttributes: true,
+					removeStyleLinkTypeAttributes: true,
+					keepClosingSlash: true,
+					minifyJS: true,
+					minifyCSS: true,
+					minifyURLs: true
+				},
+				libraries: config.libraries.filter((lib) => {
+						return lib.endsWith('.js')
+					}).map((lib) => {
+						return path.basename(lib)
+					}),
+				js: [ 'templates.js' ],
+				css: [ 'style.css' ]
+			})
+		],
+		output: {
+			path: './build/client',
+			filename: 'index.js'
+		},
+		resolve: {
+			modules: [ './client', './node_modules' ]
+		},
+		module: {
+			rules: [{
+				test: /\.js$/,
+				exclude: /(node_modules|bower_components)/,
+				loader: 'babel-loader?presets[]=es2015'
+			}]
 		}
-	}))
+	}
 	
-	return gulp.src('builds/client/index.html')
-		.pipe(inject(sorted, { relative: true }))
-    	.pipe(gulp.dest('builds/client'))
+	//Add plugins for distribution
+	if (process.env.NODE_ENV === 'dist'){
+		module.exports.options.plugins.push(
+			new webpack.optimize.UglifyJsPlugin(),
+			new WebpackObfuscator()
+		)
+	}
+	
+	//Remove source maps for distribution
+	if (process.env.NODE_ENV === 'dist'){
+		delete module.exports.options.devtool
+	}
+	
+	//Create webpack compiler with options
+	module.exports.webpack = webpack(module.exports.options)
+	
+	done()
+})
+
+//Compile any changed files in webpack
+gulp.task('client.build.compile', function(done){
+	module.exports.webpack.run(function(err, stats){
+		
+		//Log stats from build
+		console.log(stats.toString({
+			chunkModules: false,
+			assets: false
+		}))
+		
+		//Beep for success or errors
+		if (process.env.NODE_ENV === 'dev' && setup){
+			if (stats.hasErrors()){
+				beep(2)
+			}else{
+				beep()
+			}
+		}
+		setup = true
+		
+		done(err)
+	})
 })
