@@ -9,6 +9,7 @@ const obfuscator = require('webpack-obfuscator')
 //Config
 const config = require('../../config.js')
 module.exports = { webpack: undefined, options: undefined }
+let setup = false
 
 /*! Tasks
 - server.build
@@ -87,13 +88,14 @@ gulp.task('server.build.compile', function(done){
 		}))
 		
 		//Beep for success or errors
-		if (process.env.NODE_ENV === 'dev'){
+		if (process.env.NODE_ENV === 'dev' && setup){
 			if (stats.hasErrors()){
 				beep(2)
 			}else{
 				beep()
 			}
 		}
+		setup = true
 		
 		done(err)
 	})
