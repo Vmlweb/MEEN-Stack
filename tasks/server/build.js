@@ -8,8 +8,7 @@ const obfuscator = require('webpack-obfuscator')
 
 //Config
 const config = require('../../config.js')
-module.exports = { webpack: undefined, options: undefined }
-let setup = false
+module.exports = { webpack: undefined, options: undefined, setup: false }
 
 /*! Tasks
 - server.build
@@ -71,14 +70,19 @@ gulp.task('server.build.setup', function(done){
 		delete module.exports.options.devtool
 	}
 	
-	//Create webpack compiler with options
-	module.exports.webpack = webpack(module.exports.options)
-	
 	done()
 })
 
 //Compile any changed files in webpack
 gulp.task('server.build.compile', function(done){
+	
+	//Create new webpack object if setup is needed
+	if (!module.exports.setup){
+		module.exports.webpack = webpack(module.exports.options)
+	}
+	module.exports.setup = true
+	
+	//Run difference compilation for webpack
 	module.exports.webpack.run(function(err, stats){
 		
 		//Log stats from build
@@ -88,14 +92,13 @@ gulp.task('server.build.compile', function(done){
 		}))
 		
 		//Beep for success or errors
-		if (process.env.NODE_ENV === 'dev' && setup){
+		if (process.env.NODE_ENV === 'dev'){
 			if (stats.hasErrors()){
 				beep(2)
 			}else{
 				beep()
 			}
 		}
-		setup = true
 		
 		done(err)
 	})

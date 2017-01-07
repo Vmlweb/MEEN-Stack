@@ -11,15 +11,14 @@ const WebpackFavicons = require('favicons-webpack-plugin')
 
 //Config
 const config = require('../../config.js')
-module.exports = { webpack: undefined, options: undefined }
-let setup = false
+module.exports = { webpack: undefined, options: undefined, setup: false }
 
 /*! Tasks
 - client.build
 
 - client.build.css
 - client.build.libraries
-- client.build.setup
+- client.build.module.exports.setup
 - client.build.compile
 */
 
@@ -28,7 +27,7 @@ gulp.task('client.build', gulp.series(
 	gulp.parallel(
 		'client.build.libraries',
 		'client.build.css',
-		'client.build.setup'
+		'client.build.module.exports.setup'
 	),
 	'client.build.compile'
 ))
@@ -47,7 +46,7 @@ gulp.task('client.build.libraries', function(){
 })
 
 //Setup webpack for compilation
-gulp.task('client.build.setup', function(done){
+gulp.task('client.build.module.exports.setup', function(done){
 	
 	//Create options
 	module.exports.options = {
@@ -109,8 +108,7 @@ gulp.task('client.build.setup', function(done){
 				test: /\.js$/,
 				exclude: /(node_modules|bower_components)/,
 				loader: 'babel-loader?presets[]=es2015'
-			},
-			{
+			},{
 				test: /\.hbs$/,
 				include: /client\/templates/, // or whatever directory you have
 				loader: 'ember-webpack-loaders/htmlbars-loader',
@@ -118,7 +116,7 @@ gulp.task('client.build.setup', function(done){
 					appPath: 'client',
 					templateCompiler: '../../bower_components/ember/ember-template-compiler.js'
 				}
-			}, {
+			},{
 				test: /client\/index\.js/, // the main app file
 				use: [
 					{
@@ -150,14 +148,19 @@ gulp.task('client.build.setup', function(done){
 		delete module.exports.options.devtool
 	}
 	
-	//Create webpack compiler with options
-	module.exports.webpack = webpack(module.exports.options)
-	
 	done()
 })
 
 //Compile any changed files in webpack
 gulp.task('client.build.compile', function(done){
+	
+	//Create new webpack object if setup is needed
+	if (!module.exports.setup){
+		module.exports.webpack = webpack(module.exports.options)
+	}
+	module.exports.setup = true
+	
+	//Run difference compilation for webpack
 	module.exports.webpack.run(function(err, stats){
 		
 		//Log stats from build
@@ -167,14 +170,13 @@ gulp.task('client.build.compile', function(done){
 		}))
 		
 		//Beep for success or errors
-		if (process.env.NODE_ENV === 'dev' && setup){
+		if (process.env.NODE_ENV === 'dev'){
 			if (stats.hasErrors()){
 				beep(2)
 			}else{
 				beep()
 			}
 		}
-		setup = true
 		
 		done(err)
 	})
