@@ -18,7 +18,7 @@ module.exports = { webpack: undefined, options: undefined, setup: false }
 
 - client.build.css
 - client.build.libraries
-- client.build.module.exports.setup
+- client.build.setup
 - client.build.compile
 */
 
@@ -27,7 +27,7 @@ gulp.task('client.build', gulp.series(
 	gulp.parallel(
 		'client.build.libraries',
 		'client.build.css',
-		'client.build.module.exports.setup'
+		'client.build.setup'
 	),
 	'client.build.compile'
 ))
@@ -46,14 +46,23 @@ gulp.task('client.build.libraries', function(){
 })
 
 //Setup webpack for compilation
-gulp.task('client.build.module.exports.setup', function(done){
+gulp.task('client.build.setup', function(done){
 	
 	//Create options
 	module.exports.options = {
-		entry: './client/index.js',
+		entry: { 
+			index: './client/index.js',
+			vendor: './client/vendor.js'
+		},
 		target: 'web',
 		devtool: 'inline-source-map',
 		plugins: [
+			new webpack.optimize.CommonsChunkPlugin({ name: 'vendor' }),
+			new webpack.ProvidePlugin({
+			    $: 'jquery',
+			    jQuery: 'jquery',
+			    Ember: 'ember'
+			}),
 			new webpack.DefinePlugin({
 				'process.env': {
 					'ENV': JSON.stringify(process.env.NODE_ENV),
@@ -98,26 +107,36 @@ gulp.task('client.build.module.exports.setup', function(done){
 		],
 		output: {
 			path: './build/client',
-			filename: 'index.js'
+			filename: '[name].js'
 		},
 		resolve: {
-			modules: [ './client', './node_modules', './bower_components' ]
+			modules: [ './client', './bower_components', './node_modules' ],
+			alias: {
+				ember: 'ember/ember.min',
+				jquery: 'jquery/src/jquery'
+			}
 		},
 		module: {
 			rules: [{
+				test: /\.(png|jpg|jpeg|gif)$/,
+				loader: 'file-loader?name=images/[hash].[ext]&publicPath=&outputPath='
+			}, {
 				test: /\.js$/,
 				exclude: /(node_modules|bower_components)/,
-				loader: 'babel-loader?presets[]=es2015'
+				loader: 'babel-loader',
+				query: {
+					presets: ['es2015']
+				}
 			},{
 				test: /\.hbs$/,
-				include: /client\/templates/, // or whatever directory you have
+				include: /client\/templates/,
 				loader: 'ember-webpack-loaders/htmlbars-loader',
 				query: {
 					appPath: 'client',
 					templateCompiler: '../../bower_components/ember/ember-template-compiler.js'
 				}
 			},{
-				test: /client\/index\.js/, // the main app file
+				test: /client\/index\.js/,
 				use: [
 					{
 						loader: 'ember-webpack-loaders/inject-templates-loader',

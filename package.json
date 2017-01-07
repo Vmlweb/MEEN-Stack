@@ -21,7 +21,9 @@
     "beepbeep": "^1.2.0",
     "del": "^2.2.0",
     "dockerode": "^2.2.10",
+    "ember-webpack-loaders": "^0.2.0",
     "favicons-webpack-plugin": "0.0.7",
+    "file-loader": "^0.9.0",
     "gulp": "gulpjs/gulp.git#4.0",
     "gulp-babel": "^6.1.2",
     "gulp-concat": "^2.6.1",
@@ -52,6 +54,7 @@
     "request": "^2.72.0",
     "semantic-ui": "^2.2.7",
     "undertaker-forward-reference": "^1.0.1",
+    "url-loader": "^0.5.7",
     "webpack": "^2.2.0-rc.3",
     "webpack-obfuscator": "^0.8.3"
   },
