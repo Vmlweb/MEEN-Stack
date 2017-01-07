@@ -1,7 +1,7 @@
 module.exports = {
 	
 	//! Process
-	name: 'mean',
+	name: 'meen',
 	config: '/opt/mean/config.js',
 	
 	//! HTTP

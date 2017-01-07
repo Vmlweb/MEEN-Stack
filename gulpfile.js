@@ -96,9 +96,9 @@ gulp.task('build', gulp.parallel('client.build', 'server.build', 'build.config')
 gulp.task('watch', gulp.parallel('client.watch', 'server.watch'));
 
 //! Enviroment Variables
-gulp.task('env.dev', function(done) { process.env.NODE_ENV = 'dev'; done(); });
-gulp.task('env.test', function(done) { process.env.NODE_ENV = 'test'; done(); });
-gulp.task('env.dist', function(done) { process.env.NODE_ENV = 'dist'; done(); });
+gulp.task('env.dev', function(done) { process.env.NODE_ENV = 'development'; done(); });
+gulp.task('env.test', function(done) { process.env.NODE_ENV = 'testing'; done(); });
+gulp.task('env.dist', function(done) { process.env.NODE_ENV = 'production'; done(); });
 
 //! Test Plans
 for (let i in config.tests){

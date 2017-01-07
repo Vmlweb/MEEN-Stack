@@ -7,7 +7,7 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'; //Accept self signed ssl certifi
 process.env.NODE_ENV = 'testing'; //Disable all logging in app
 
 //Start app
-global.app = require(path.join(__dirname, '../app.js'));
+global.app = require(path.join(__dirname, '../index.js'));
 const mongo = require(path.join(__dirname, '../app/mongo.js'));
 
 //Wait for database connection

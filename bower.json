@@ -1,5 +1,5 @@
 {
-  "name": "MEEN",
+  "name": "meen",
   "description": "MEEN Stack Template for EmberJS 2 and Docker",
   "main": "server/index.js",
   "authors": [

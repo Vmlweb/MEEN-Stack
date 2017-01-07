@@ -35,7 +35,7 @@ gulp.task('server.test.coverage', function(){
 	let includes = [];
 	
 	//Check if using a test plan
-	if (process.env.hasOwnProperty('test') && process.env.test.length > 0){
+	if (process.env.hasOwnProperty('testing') && process.env.test.length > 0){
 		for (i in config.tests[process.env.test]){
 			let tests = config.tests[process.env.test][i];
 			includes.push(path.join('build/server', tests, '*.js'));

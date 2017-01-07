@@ -35,9 +35,17 @@ gulp.task('server.build.setup', function(done){
 	module.exports.options = {
 		entry: './server/index.js',
 		target: 'node',
-		devtool: 'inline-source-map',
+		devtool: 'source-map',
 		externals: nodeModules,
-		plugins: [],
+		plugins: [
+			new webpack.DefinePlugin({
+				'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
+				'process.env.CONFIG': JSON.stringify(config)
+			})
+		],
+		performance: {
+			hints: false
+		},
 		output: {
 			path: './build/server',
 			filename: 'index.js'
@@ -58,7 +66,7 @@ gulp.task('server.build.setup', function(done){
 	}
 	
 	//Add plugins for distribution
-	if (process.env.NODE_ENV === 'dist'){
+	if (process.env.NODE_ENV === 'production'){
 		module.exports.options.plugins.push(
 			new webpack.optimize.UglifyJsPlugin(),
 			new obfuscator()
@@ -66,7 +74,7 @@ gulp.task('server.build.setup', function(done){
 	}
 	
 	//Remove source maps for distribution
-	if (process.env.NODE_ENV === 'dist'){
+	if (process.env.NODE_ENV === 'production'){
 		delete module.exports.options.devtool
 	}
 	
@@ -92,7 +100,7 @@ gulp.task('server.build.compile', function(done){
 		}))
 		
 		//Beep for success or errors
-		if (process.env.NODE_ENV === 'dev'){
+		if (process.env.NODE_ENV === 'development'){
 			if (stats.hasErrors()){
 				beep(2)
 			}else{
