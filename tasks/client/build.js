@@ -8,27 +8,25 @@ const webpack = require('webpack')
 const WebpackObfuscator = require('webpack-obfuscator')
 const WebpackHTML = require('html-webpack-plugin')
 const WebpackFavicons = require('favicons-webpack-plugin')
+const PathsPlugin = require('awesome-typescript-loader').TsConfigPathsPlugin
+const { CheckerPlugin } = require('awesome-typescript-loader')
 
 //Config
 const config = require('../../config.js')
-module.exports = { webpack: undefined, options: undefined, setup: false }
+module.exports = { setup: false }
 
 /*! Tasks
 - client.build
 
 - client.build.css
 - client.build.libraries
-- client.build.setup
 - client.build.compile
 */
 
 //! Build
 gulp.task('client.build', gulp.series(
-	gulp.parallel(
-		'client.build.libraries',
-		'client.build.css',
-		'client.build.setup'
-	),
+	'client.build.libraries',
+	'client.build.css',
 	'client.build.compile'
 ))
 
@@ -41,22 +39,23 @@ gulp.task('client.build.css', function(){
 
 //Copy client library files
 gulp.task('client.build.libraries', function(){
-	return gulp.src(config.libraries)
+	return gulp.src(config.libs)
 		.pipe(gulp.dest('build/client/libs'))
 })
 
 //Setup webpack for compilation
-gulp.task('client.build.setup', function(done){
+gulp.task('client.build.compile', function(done){
 	
 	//Create options
-	module.exports.options = {
+	let options = {
 		entry: { 
-			index: './client/index.js',
-			vendor: './client/vendor.js'
+			index: './client/index.ts',
+			vendor: './client/vendor.ts'
 		},
 		target: 'web',
 		devtool: 'source-map',
 		plugins: [
+			new CheckerPlugin({ fork: true }),
 			new webpack.IgnorePlugin(/vertx/),
 			new webpack.optimize.CommonsChunkPlugin({
 				name: 'vendor'
@@ -84,12 +83,12 @@ gulp.task('client.build.setup', function(done){
 					minifyCSS: true,
 					minifyURLs: true
 				},
-				js: config.libraries.filter((lib) => {
+				js: config.libs.filter((lib) => {
 						return lib.endsWith('.js')
 					}).map((lib) => {
 						return '/libs/' + path.basename(lib)
 					}),
-				css: config.libraries.filter((lib) => {
+				css: config.libs.filter((lib) => {
 						return lib.endsWith('.css')
 					}).map((lib) => {
 						return '/libs/' + path.basename(lib)
@@ -108,18 +107,31 @@ gulp.task('client.build.setup', function(done){
 			alias: {
 				ember: process.env.NODE_ENV === 'production' ? 'ember/ember.min' : 'ember/ember.debug',
 				jquery: process.env.NODE_ENV === 'production' ? 'jquery/dist/jquery.min' : 'jquery/src/jquery'
-			}
+			},
+			plugins: [
+				new PathsPlugin()
+			]
 		},
 		module: {
 			rules: [{
 				test: /\.(png|jpg|jpeg|gif)$/,
 				loader: 'file-loader?name=images/[hash].[ext]&publicPath=&outputPath='
-			}, {
+			},{
 				test: /\.js$/,
 				exclude: /(node_modules|bower_components)/,
-				loader: 'babel-loader',
+				loader: 'babel-loader?presets[]=es2015'
+			},{
+				test: /\.ts$/,
+				exclude: /(node_modules|bower_components)/,
+				loader: 'awesome-typescript-loader',
 				query: {
-					presets: ['es2015']
+					instance: 'client',
+					lib: ['dom', 'es6'],
+					target: 'es6',
+					types: config.types.client,
+					baseUrl: './client',
+					useBabel: true,
+					useCache: true
 				}
 			},{
 				test: /\.hbs$/,
@@ -134,14 +146,10 @@ gulp.task('client.build.setup', function(done){
 				use: [
 					{
 						loader: 'ember-webpack-loaders/inject-templates-loader',
-						query: {
-							appPath: 'client'
-						}
-					}, {
+						query: { appPath: 'client' }
+					},{
 						loader: 'ember-webpack-loaders/inject-modules-loader',
-						query: {
-							appPath: 'client'
-						}
+						query: { appPath: 'client' }
 					}
 				]
 			}]
@@ -169,20 +177,10 @@ gulp.task('client.build.setup', function(done){
 		delete module.exports.options.devtool
 	}
 	
-	done()
-})
-
-//Compile any changed files in webpack
-gulp.task('client.build.compile', function(done){
-	
-	//Create new webpack object if setup is needed
-	if (!module.exports.setup){
-		module.exports.webpack = webpack(module.exports.options)
-	}
-	module.exports.setup = true
-	
-	//Run difference compilation for webpack
-	module.exports.webpack.run(function(err, stats){
+	//Compile webpack and watch for changes
+	webpack(options).watch({
+		ignored: /(node_modules|bower_components)/
+	}, function(err, stats){
 		
 		//Log stats from build
 		console.log(stats.toString({
@@ -191,13 +189,16 @@ gulp.task('client.build.compile', function(done){
 		}))
 		
 		//Beep for success or errors
-		if (process.env.NODE_ENV === 'development'){
+		if (process.env.NODE_ENV === 'development' && module.exports.setup){
 			if (stats.hasErrors()){
 				beep(2)
 			}else{
 				beep()
 			}
 		}
+		
+		//Reset build status variables
+		module.exports.setup = true
 		
 		done(err)
 	})

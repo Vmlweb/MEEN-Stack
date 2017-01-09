@@ -6,8 +6,8 @@ const fs = require('fs')
 const typescript = require('typescript')
 const webpack = require('webpack')
 const WebpackObfuscator = require('webpack-obfuscator')
-const { CheckerPlugin } = require('awesome-typescript-loader')
 const PathsPlugin = require('awesome-typescript-loader').TsConfigPathsPlugin
+const { CheckerPlugin } = require('awesome-typescript-loader')
 
 //Config
 const config = require('../../config.js')
@@ -71,9 +71,18 @@ gulp.task('server.build', function(done){
 			},{
 				test: /\.ts$/,
 				exclude: /node_modules/,
-				loaders: [ 'awesome-typescript-loader?baseUrl=./server&target=es5&useBabel=true&useCache=true' ]
+				loader: 'awesome-typescript-loader',
+				query: {
+					instance: 'server',
+					lib: ['es6'],
+					target: 'es6',
+					types: config.types.server,
+					baseUrl: './server',
+					useBabel: true,
+					useCache: true
+				}
 			}]
-		},
+		}
 	}
 	
 	//Add plugins for distribution
