@@ -15,6 +15,7 @@ log.info('Loaded static client route')
 require.ensure([], function(require){
 	let api: any = require('api_v1')
 	app.use('/api/v1', api.router)
+	
 	log.info('Loaded REST API v1 with ' + api.endpoints.length + ' endpoints')
 });
 

@@ -11,18 +11,19 @@ export interface IEndpoint{
 	
 	title?: string
 	description?: string
+	errors?: Object
 	
-	body?: IEndpointLayout
-	example?: IEndpointLayout
+	parameters?: {
+		request?: Object
+		response?: Object
+	}
+	example?: {
+		request?: Object
+		response?: Object
+	}
 }
 
-export interface IEndpointLayout{
-	
-	request?: Object
-	response?: Object
-}
-
-//! Class and Enum
+//! Class
 
 export enum Method{
 	Get, Post, Put, Delete
@@ -36,9 +37,16 @@ export class Endpoint{
 	
 	title: string | null
 	description: string | null
+	errors: Object | null
 	
-	body: IEndpointLayout | null
-	example: IEndpointLayout | null
+	parameters: {
+		request: Object | null
+		response: Object | null
+	}
+	example: {
+		request: Object | null
+		response: Object | null
+	}
 	
 	constructor(options: IEndpoint){
 		
@@ -48,9 +56,16 @@ export class Endpoint{
 		
 		this.title = options.title || null
 		this.description = options.description || null
+		this.errors = options.errors || null
 		
-		this.body = options.body || null
-		this.example = options.example || null
+		this.parameters = {
+			request: options.parameters ? options.parameters.request || null : null,
+			response: options.parameters ? options.parameters.response || null : null
+		}
+		
+		this.example = {
+			request: options.example ? options.example.request || null : null,
+			response: options.example ? options.example.response || null : null
+		}
 	}
-	
 }

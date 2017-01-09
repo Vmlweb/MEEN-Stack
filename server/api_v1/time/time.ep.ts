@@ -4,7 +4,7 @@ import { Time, Method, Endpoint } from 'app'
 const execute = (req, res, next) => {
 	
 	//Create time object
-	let time = new Time(req.params.format)
+	let time = new Time(req.query.format || null)
 	
 	//Return json as respose
 	res.json({
@@ -22,9 +22,10 @@ export default new Endpoint({
 	//! Documentation
 	title: 'Time',
 	description: 'Get the formatted current time.',
+	errors: {},
 	
 	//! Layouts
-	body: {
+	parameters: {
 		request: {
 			format: 'Moment time format, defaults to dddd, MMMM Do YYYY, h:mm:ss a.'
 		},
