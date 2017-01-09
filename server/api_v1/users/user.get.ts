@@ -1,6 +1,11 @@
 //Models
-import User from 'models'
+import { User } from 'models'
 
+//Endpoint
+export const url = '/users'
+export const method = 'GET'
+
+//Method
 export default (req, res, next) => {
 	
 	//Check for all required parameters

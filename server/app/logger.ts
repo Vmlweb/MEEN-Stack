@@ -1,9 +1,9 @@
 //Modules
-import fs from 'fs'
-import path from 'path'
-import moment from 'moment'
-import winston from 'winston'
-import rotate from 'winston-daily-rotate-file'
+import * as fs from 'fs'
+import * as path from 'path'
+import * as moment from 'moment'
+import * as winston from 'winston'
+import * as rotate from 'winston-daily-rotate-file'
 
 //Create log paths
 const errorPath = '../../errors'
@@ -18,7 +18,7 @@ try { fs.statSync(accessPath) } catch(e) { fs.mkdirSync(accessPath) }
 //Setup logging output formatter
 const formatter = (options) => {
 	let format = '(' + moment().format('YYYY-MM-DD_HH-mm-ss') + ') '
-    format += '[' + winston.config.colorize(options.level,options.level.toUpperCase()) + '] '
+	format += '[' + (winston.config as any).colorize(options.level,options.level.toUpperCase()) + '] '
     format += options.message
     if (options.meta.length > 0){
         format += JSON.stringify(options.meta)
@@ -59,7 +59,7 @@ if (process.env.NODE_ENV !== 'silent'){
 	transports.push(
 		new winston.transports.Console({
 		    name: 'console',
-            level: 'info',
+			level: 'info',
             json: false,
             colorize: true,
             formatter: formatter
@@ -81,7 +81,7 @@ const logger = new winston.Logger({
 })
 
 //Globalize wrapped logger
-global.log = {
+const log = {
 	error: logger.error,
 	warn: logger.warn,
 	info: logger.info,
@@ -98,4 +98,4 @@ global.log = {
 //TELL THE WORLD IT'S READY!!!!!!!!!!!
 log.info('Logger initialized')
 
-export default logger
+export { logger, log }

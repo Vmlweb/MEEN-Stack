@@ -9,10 +9,11 @@ const gulp = require('gulp')
 gulp.task('server.watch', function(done){
 	gulp.watch([
 		'server/**/*.js',
+		'server/**/*.ts',
 		'server/**/*.json'
 	], gulp.series(
 		'app.stop',
-		'server.build.compile',
+		'server.build.reload',
 		'app.start',
 		'app.attach'
 	))

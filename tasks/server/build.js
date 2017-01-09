@@ -3,41 +3,47 @@ const gulp = require('gulp')
 const path = require('path')
 const beep = require('beepbeep')
 const fs = require('fs')
+const typescript = require('typescript')
 const webpack = require('webpack')
-const obfuscator = require('webpack-obfuscator')
+const WebpackObfuscator = require('webpack-obfuscator')
+const { CheckerPlugin } = require('awesome-typescript-loader')
+const PathsPlugin = require('awesome-typescript-loader').TsConfigPathsPlugin
 
 //Config
 const config = require('../../config.js')
-module.exports = { webpack: undefined, options: undefined, setup: false }
+module.exports = { setup: false, reload: false }
 
 /*! Tasks
 - server.build
-
-- server.build.setup
-- server.build.compile
+- server.build.reload
 */
 
-//! Build
-gulp.task('server.build', gulp.series(
-	'server.build.setup',
-	'server.build.compile'
-))
+//! Wait
+gulp.task('server.build.reload', function(done){
+	let interval = setInterval(function(){
+		if (module.exports.reload){
+			clearInterval(interval)
+			done()
+		}
+	}, 100)
+})
 
-//Setup webpack for compilation
-gulp.task('server.build.setup', function(done){
+//! Build
+gulp.task('server.build', function(done){
 	
 	//Generate list of file paths to exclude
 	let nodeModules = {}
 	fs.readdirSync('node_modules').filter(function(x) { return ['.bin'].indexOf(x) === -1 }).forEach(function(mod) { nodeModules[mod] = 'commonjs ' + mod })
 	nodeModules['config'] = 'commonjs ../config.js'
 	
-	//Create options
-	module.exports.options = {
-		entry: './server/index.js',
+	//Create webpack options
+	let options = {
+		entry: './server/index.ts',
 		target: 'node',
 		devtool: 'source-map',
 		externals: nodeModules,
 		plugins: [
+			new CheckerPlugin({ fork: true }),
 			new webpack.DefinePlugin({
 				'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
 				'process.env.CONFIG': JSON.stringify(config)
@@ -51,16 +57,21 @@ gulp.task('server.build.setup', function(done){
 			filename: 'index.js'
 		},
 		resolve: {
-			modules: [ './server', './node_modules' ]
+			modules: [ './server', './node_modules' ],
+			extensions: [ '.js', '.ts', '.json' ],
+			plugins: [
+				new PathsPlugin()
+			]
 		},
 		module: {
 			rules: [{
 				test: /\.js$/,
-				exclude: /(node_modules|bower_components)/,
-				loader: 'babel-loader',
-				query: {
-					presets: ['es2015']
-				}
+				exclude: /node_modules/,
+				loader: 'babel-loader?presets[]=es2015'
+			},{
+				test: /\.ts$/,
+				exclude: /node_modules/,
+				loaders: [ 'awesome-typescript-loader?baseUrl=./server&target=es5&useBabel=true&useCache=true' ]
 			}]
 		},
 	}
@@ -69,7 +80,7 @@ gulp.task('server.build.setup', function(done){
 	if (process.env.NODE_ENV === 'production'){
 		module.exports.options.plugins.push(
 			new webpack.optimize.UglifyJsPlugin(),
-			new obfuscator()
+			new WebpackObfuscator()
 		)
 	}
 	
@@ -78,20 +89,10 @@ gulp.task('server.build.setup', function(done){
 		delete module.exports.options.devtool
 	}
 	
-	done()
-})
-
-//Compile any changed files in webpack
-gulp.task('server.build.compile', function(done){
-	
-	//Create new webpack object if setup is needed
-	if (!module.exports.setup){
-		module.exports.webpack = webpack(module.exports.options)
-	}
-	module.exports.setup = true
-	
-	//Run difference compilation for webpack
-	module.exports.webpack.run(function(err, stats){
+	//Compile webpack and watch for changes
+	webpack(options).watch({
+		ignored: /node_modules/
+	}, function(err, stats){
 		
 		//Log stats from build
 		console.log(stats.toString({
@@ -100,13 +101,17 @@ gulp.task('server.build.compile', function(done){
 		}))
 		
 		//Beep for success or errors
-		if (process.env.NODE_ENV === 'development'){
+		if (process.env.NODE_ENV === 'development' && module.exports.setup){
 			if (stats.hasErrors()){
 				beep(2)
 			}else{
 				beep()
 			}
 		}
+		
+		//Reset build status variables
+		module.exports.setup = true
+		module.exports.reload = true
 		
 		done(err)
 	})

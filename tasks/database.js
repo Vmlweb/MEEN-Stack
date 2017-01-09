@@ -5,7 +5,7 @@ const fs = require('fs');
 const async = require('async');
 const path = require('path');
 const docker = require('dockerode')()
-const recursive = require('recursive-readdir');
+//const recursive = require('recursive-readdir');
 
 //Config
 const config = require('../config.js');
@@ -103,7 +103,7 @@ gulp.task('database.test', function(done){
 gulp.task('database.mock', function(done){
 	
 	//Search for test files
-	recursive(path.join(__dirname, '../build/server/tests'), ['!*.test.js', 'setup.test.js'], function (err, files) {
+	/*recursive(path.join(__dirname, '../build/server/tests'), ['!*.test.js', 'setup.test.js'], function (err, files) {
 		
 		//Define testing capture functions
 		let beforeAlls = [];
@@ -144,7 +144,7 @@ gulp.task('database.mock', function(done){
 			
 			setTimeout(done, 500);
 		});
-	});
+	});*/
 });
 
 //Stop database server

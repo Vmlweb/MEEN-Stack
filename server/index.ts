@@ -1,22 +1,22 @@
 //Modules
-import config from 'config'
-import path from 'path'
-import async from 'async'
-import express from 'express'
+import * as path from 'path'
+import * as async from 'async'
+import * as express from 'express'
 
 //Includes
-import * as app from 'app'
-import * as api_v1 from 'api_v1'
+import { config, log, express as app, httpServer, httpConnections, httpsServer, httpsConnections, mongooseConnection } from 'app'
 
 //Load client frontend
-app.express.use('/', express.static('./client'))
+app.use('/', express.static('./client'))
 
 log.info('Loaded static client route')
 
-//Load backend api
-app.express.use('/api/v1', api_v1.router)
-
-log.info('Loaded REST API endpoints');
+//API V1
+require.ensure([], function(require){
+	let api: any = require('api_v1')
+	app.use('/api/v1', api.router)
+	log.info('Loaded REST API v1 with ' + api.endpoints.length + ' endpoints')
+});
 
 //Shutdown services
 const shutdown = (callback) => {
@@ -27,57 +27,60 @@ const shutdown = (callback) => {
 		(done) => {
 		    
 			//HTTP
-		    if (app.httpServer){
+		    if (httpServer){
 			    
 			    //Destroy existing keep-alive connections
 				setTimeout(() => {
 					log.info('HTTP connections destroyed')
-					for (let i of Object.keys(app.httpConnections)){
-						app.httpConnections[i].destroy()
+					for (let i of Object.keys(httpConnections)){
+						httpConnections[i].destroy()
 					}
 				}, 3000).unref()
 			    
 			    //Close server and socket
-			    app.httpServer.close(() => {
+			    httpServer.close(() => {
 					done()
 				})
 			}else{
 				done()
 			}
+			
 		}, (done) => {
 
 			//HTTPS
-			if (app.httpsServer){
+			if (httpsServer){
 			
 				//Destroy existing keep-alive connections
 				setTimeout(() => {
 					log.info('HTTPS connections destroyed')
-					for (let i of Object.keys(app.httpsConnections)){
-						app.httpsConnections[i].destroy()
+					for (let i of Object.keys(httpsConnections)){
+						httpsConnections[i].destroy()
 					}
 				}, 3000).unref()
 			
 				//Close server and socket
-			    app.httpsServer.close(() => {
+			    httpsServer.close(() => {
 					done()
 				})
 			}else{
 				done()
 			}
+			
 		}, (done) => {
 
 			//MongoDB
-			if (app.mongooseConnection){
+			if (mongooseConnection){
 				
 				//Destroy database connections
 				if (config.database.repl.nodes.length > 0){
-					app.mongooseConnection.close(() => {
+					mongooseConnection.close(() => {
 						done()
 					})
 				}else{
 					done()
 				}
 			}
+			
 		}
 	], (err) => {
 		if (callback){

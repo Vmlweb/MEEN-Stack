@@ -1,18 +1,19 @@
 //Modules
-import config from 'config'
-import https from 'https'
-import http from 'http'
-import fs from 'fs'
-import path from 'path'
-import morgan from 'morgan'
-import recursive from 'recursive-readdir'
-import async from 'async'
-import bodyParser from 'body-parser'
-import helmet from 'helmet'
-import compression from 'compression'
-import filter from 'content-filter'
-import express from 'express'
+import * as https from 'https'
+import * as http from 'http'
+import * as fs from 'fs'
+import * as path from 'path'
+import * as morgan from 'morgan'
+import * as async from 'async'
+import * as bodyParser from 'body-parser'
+import * as helmet from 'helmet'
+import * as compression from 'compression'
+import * as filter from 'content-filter'
+import * as express from 'express'
 const app = express()
+
+//Includes
+import { config, log } from 'app'
 
 log.info('Express initialized')
 

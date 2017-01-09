@@ -6,7 +6,7 @@ module.exports = {
 	
 	//! HTTP
 	http: {
-		hostname: '0.0.0.0',
+		hostname: '::',
 		url: '127.0.0.1',
 		port: {
 			internal: '8080',
@@ -16,7 +16,7 @@ module.exports = {
 	
 	//! HTTPS
 	https: {
-		hostname: '0.0.0.0',
+		hostname: '::',
 		url: '127.0.0.1',
 		port: {
 			internal: '4434',
@@ -49,7 +49,7 @@ module.exports = {
 			read: 'nearest',
 			key: 'repl.key',
 			nodes: [{
-				hostname: '192.168.0.22',
+				hostname: '192.168.0.25',
 				port: 27017 
 			}]
 		}

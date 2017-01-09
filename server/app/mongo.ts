@@ -1,8 +1,10 @@
 //Modules
-import config from 'config'
-import path from 'path'
-import mongoose from 'mongoose'
-import fs from 'fs'
+import * as path from 'path'
+import * as mongoose from 'mongoose'
+import * as fs from 'fs'
+
+//Includes
+import { config, log } from 'app'
 
 //Prepare connection string
 const auth = config.database.auth.username + ':' + config.database.auth.password
@@ -23,7 +25,7 @@ setTimeout(() => {
 			readPreference: config.database.repl.read || 'nearest'
 		}
 	})
-}, 200)
+}, 400)
 
 //Listen for database connection changes
 let connection = mongoose.connection

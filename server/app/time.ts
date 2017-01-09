@@ -1,11 +1,13 @@
 //Modules
-import moment from 'moment';
+import * as moment from 'moment';
 
 export class Time{
 
+	format: string
+
 	//Init with default time format	
-	constructor(format){
-		this.format = format || 'ddd, hA'
+	constructor(format = 'dddd, MMMM Do YYYY'){
+		this.format = format
 	}
 
 	//Return time using time format	

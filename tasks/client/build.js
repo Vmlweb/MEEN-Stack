@@ -57,24 +57,17 @@ gulp.task('client.build.setup', function(done){
 		target: 'web',
 		devtool: 'source-map',
 		plugins: [
-			new webpack.optimize.CommonsChunkPlugin({ name: 'vendor' }),
+			new webpack.IgnorePlugin(/vertx/),
+			new webpack.optimize.CommonsChunkPlugin({
+				name: 'vendor'
+			}),
 			new webpack.ProvidePlugin({
 			    $: 'jquery',
-			    jQuery: 'jquery',
-			    Ember: 'ember'
+			    jQuery: 'jquery'
 			}),
 			new webpack.DefinePlugin({
 				'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
 				'process.env.CONFIG': JSON.stringify(config)
-			}),
-			new WebpackFavicons({
-				title: config.name,
-				logo: './client/favicon.png',
-				prefix: 'favicons/',
-				icons: {
-					appleStartup: false,
-					firefox: false
-				}
 			}),
 			new WebpackHTML({
 				title: config.name,
@@ -113,8 +106,8 @@ gulp.task('client.build.setup', function(done){
 		resolve: {
 			modules: [ './client', './bower_components', './node_modules' ],
 			alias: {
-				ember: 'ember/ember.min',
-				jquery: 'jquery/src/jquery'
+				ember: process.env.NODE_ENV === 'production' ? 'ember/ember.min' : 'ember/ember.debug',
+				jquery: process.env.NODE_ENV === 'production' ? 'jquery/dist/jquery.min' : 'jquery/src/jquery'
 			}
 		},
 		module: {
@@ -159,7 +152,15 @@ gulp.task('client.build.setup', function(done){
 	if (process.env.NODE_ENV === 'production'){
 		module.exports.options.plugins.push(
 			new webpack.optimize.UglifyJsPlugin(),
-			new WebpackObfuscator({}, 'vendor.js')
+			new WebpackObfuscator({}, 'vendor.js'),
+			new WebpackFavicons({
+				title: config.name,
+				logo: './client/favicon.png',
+				prefix: 'favicons/',
+				icons: {
+					appleStartup: false
+				}
+			})
 		)
 	}
 	
