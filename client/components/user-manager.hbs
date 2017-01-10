@@ -1,0 +1,50 @@
+<h1 class="ui center aligned header">User Accounts</h1>
+<div class="ui section divider"></div>
+<div class="ui grid">
+	<div class="one wide column"></div>
+	<div class="six wide column">
+		<table class="ui table">
+			<thead>
+				<tr>
+					<th>Username</th>
+					<th>Email</th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody>
+				{{#each model.users as |user|}}
+				<tr>
+					<td><div class="ui transparent input">{{input change=(action 'updateUsername' user) value=user.username}}</div></td>
+					<td><div class="ui transparent input">{{input change=(action 'updateEmail' user) value=user.email}}</div></td>
+					<td>
+						<button {{action 'remove' user}} class="ui red small icon button">
+							<i class="remove icon"></i>
+						</button>
+					</td>
+				</tr>
+				{{else}}
+				<tr>
+					<td></td>
+					<td>Please Create User</td>
+					<td></td>
+				</tr>
+				{{/each}}
+			</tbody>
+		</table>
+	</div>
+	<div class="two wide column"></div>
+	<div class="six wide column">
+		<form class="ui form">
+			<div class="field">
+				<label>Username</label>
+				{{input value=model.create.username}}
+			</div>
+			<div class="field">
+				<label>Username</label>
+				{{input value=model.create.email}}
+			</div>
+			<button class="ui button" {{action 'create'}}>Create</button>
+		</form>
+	</div>
+	<div class="one wide column"></div>
+</div>

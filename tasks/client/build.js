@@ -71,6 +71,11 @@ gulp.task('client.build.templates', function(){
 				}
 			}
 		}))
+		.on('error', function(err){
+			console.log(err)
+			beep(2)
+			this.emit('end')
+		})
 		.pipe(concat('templates.js'))
 		.pipe(wrap('window.Templates = function(Ember){<%= contents %>}'))
 		.pipe(sourcemaps.write('./'))
@@ -136,8 +141,9 @@ gulp.task('client.build.compile', function(done){
 			modules: [ './client', './bower_components', './node_modules' ],
 			extensions: [ '.js', '.ts', '.json', '.png', '.jpg', '.jpeg', '.gif' ],
 			alias: {
+				jquery: process.env.NODE_ENV === 'production' ? 'jquery/dist/jquery.min' : 'jquery/src/jquery',
 				ember: process.env.NODE_ENV === 'production' ? 'ember/ember.min' : 'ember/ember.debug',
-				jquery: process.env.NODE_ENV === 'production' ? 'jquery/dist/jquery.min' : 'jquery/src/jquery'
+				semantic: process.env.NODE_ENV === 'production' ? '../semantic/dist/semantic.min' : '../semantic/dist/semantic'
 			},
 			plugins: [
 				new PathsPlugin()
@@ -150,7 +156,7 @@ gulp.task('client.build.compile', function(done){
 			},{
 				test: /\.js$/,
 				exclude: /(node_modules|bower_components)/,
-				loader: 'babel-loader?presets[]=es2015'
+				loader: 'babel-loader?presets[]=es2015&compact=false'
 			},{
 				test: /\.ts$/,
 				exclude: /(node_modules|bower_components)/,

@@ -1,5 +1,5 @@
 //Includes
-import { Method, Endpoint } from 'app'
+import { Method, Endpoint, log } from 'app'
 import { User } from 'models'
 
 const execute = (req, res, next) => {
@@ -10,15 +10,16 @@ const execute = (req, res, next) => {
 	//Validate parameter fields
 	if (userId.length <= 0){ return next('User identifier must be given') } 
 	
-	//Find user in database
-	User.findById(userId, (err, user) => {
-		user.remove((err) => {
-			if (err){
-				next(err)
-			}else{
-				res.json({})
-			}
-		})
+	//Find user in database and remove
+	User.findByIdAndRemove(userId, (err, user) => {
+		if (err){
+			next(err)
+		}else{
+			log.info('User ' + user.id.toString() + ' removed')
+			res.json({
+				userId: user.id.toString()
+			})
+		}
 	})
 }
 
@@ -38,9 +39,15 @@ export default new Endpoint({
 	parameters: {
 		request: {
 			userId: 'Identifier of user to remove'
+		},
+		response: {
+			userId: 'Identifier of the user'
 		}
 	},
 	example: {
-		request: '/607f1f77bcf86cd799439014'
+		request: '/607f1f77bcf86cd799439014',
+		response: {
+			userId: '607f1f77bcf86cd799439014'
+		}
 	}
 })

@@ -10,11 +10,12 @@ const execute = (req, res, next) => {
 	//Check for all required parameters
 	let limit: number = req.query.limit ? parseInt(req.query.limit) : -1
 	
-	//Validate parameter fields
-	if (limit < 0){ return next('Limit must be a positive integer') } 
+	//Construct find users database query
+	let query = User.find().sort('username')
+	if (limit > 0){ query.limit(limit) }
 	
-	//Find all users in the database
-	User.find().limit(limit).exec((err, users) => {
+	//Execute query and return users
+	query.exec((err, users) => {
 		if (err){
 			next(err)
 		}else{

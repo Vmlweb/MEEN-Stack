@@ -14,12 +14,12 @@ export interface IEndpoint{
 	errors?: Object
 	
 	parameters?: {
-		request?: Object
-		response?: Object
+		request?: string | Object
+		response?: string | Object
 	}
 	example?: {
-		request?: Object
-		response?: Object
+		request?: string | Object
+		response?: string | Object
 	}
 }
 
@@ -40,12 +40,12 @@ export class Endpoint{
 	errors: Object | null
 	
 	parameters: {
-		request: Object | null
-		response: Object | null
+		request: string | Object | null
+		response: string | Object | null
 	}
 	example: {
-		request: Object | null
-		response: Object | null
+		request: string | Object | null
+		response: string | Object | null
 	}
 	
 	constructor(options: IEndpoint){

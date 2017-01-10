@@ -7,7 +7,10 @@ import * as express from 'express'
 import { config, log, express as app, httpServer, httpConnections, httpsServer, httpsConnections, mongooseConnection } from 'app'
 
 //Load client frontend
-app.use('/', express.static('./client'))
+app.use(express.static('./client'))
+app.get(/^(?!\/api).*/, (req, res) => {
+	res.sendFile(path.resolve('./client/index.html'));
+});
 
 log.info('Loaded static client route')
 

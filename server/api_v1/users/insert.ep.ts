@@ -1,5 +1,5 @@
 //Includes
-import { Method, Endpoint } from 'app'
+import { Method, Endpoint, log } from 'app'
 import { User } from 'models'
 
 const execute = (req, res, next) => {
@@ -23,7 +23,10 @@ const execute = (req, res, next) => {
 		if (err){
 			next(err)
 		}else{
-			res.json({})
+			log.info('User ' +  + ' created')
+			res.json({
+				userId: user.id.toString()
+			})
 		}
 	})
 }
@@ -45,12 +48,18 @@ export default new Endpoint({
 		request: {
 			username: 'Username for the user to add',
 			email: 'E-mail address for the user to add'
+		},
+		response: {
+			userId: 'Identifier of the user'
 		}
 	},
 	example: {
 		request: {
 			username: 'MyUsername',
 			email: 'MyEmail@MyEmail.com'
+		},
+		response: {
+			userId: '607f1f77bcf86cd799439014'
 		}
 	}
 })
