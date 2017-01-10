@@ -67,7 +67,7 @@ module.exports = {
 	//! Typescript Types
 	types: {
 		server: [ 'async', 'body-parser', 'compression', 'express', 'helmet', 'moment', 'mongoose', 'morgan', 'webpack', 'webpack-env', 'winston' ],
-		client: [ 'jquery', 'ember' ]
+		client: [ 'webpack', 'webpack-env', 'jquery' ]
 	},
 	
 	//! Server Test Plans

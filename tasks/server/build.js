@@ -98,10 +98,8 @@ gulp.task('server.build', function(done){
 		delete module.exports.options.devtool
 	}
 	
-	//Compile webpack and watch for changes
-	webpack(options).watch({
-		ignored: /node_modules/
-	}, function(err, stats){
+	//Prepare callback for compilation completion
+	let callback = function(err, stats){
 		
 		//Log stats from build
 		console.log(stats.toString({
@@ -123,5 +121,14 @@ gulp.task('server.build', function(done){
 		module.exports.reload = true
 		
 		done(err)
-	})
+	}
+	
+	//Compile webpack and watch if developing
+	if (process.env.NODE_ENV === 'development'){
+		webpack(options).watch({
+			ignored: /node_modules/
+		}, callback)
+	}else{
+		webpack(options).run(callback)
+	}
 })

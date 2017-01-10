@@ -4,6 +4,9 @@ const path = require('path')
 const beep = require('beepbeep')
 const fs = require('fs')
 const concat = require('gulp-concat')
+const sourcemaps = require('gulp-sourcemaps')
+const wrap = require('gulp-wrap')
+const templates = require('gulp-ember-templates')
 const webpack = require('webpack')
 const WebpackObfuscator = require('webpack-obfuscator')
 const WebpackHTML = require('html-webpack-plugin')
@@ -13,34 +16,58 @@ const { CheckerPlugin } = require('awesome-typescript-loader')
 
 //Config
 const config = require('../../config.js')
-module.exports = { setup: false }
+module.exports = { setup: false, watch: undefined }
 
 /*! Tasks
 - client.build
 
-- client.build.css
-- client.build.libraries
+- client.build.styles
+- client.build.libs
+- client.build.templates
 - client.build.compile
+- client.build.recompile
 */
 
 //! Build
 gulp.task('client.build', gulp.series(
-	'client.build.libraries',
-	'client.build.css',
+	gulp.parallel(
+		'client.build.styles',
+		'client.build.libs',
+		'client.build.templates'
+	),
 	'client.build.compile'
 ))
 
-//Copy client library files
-gulp.task('client.build.css', function(){
+//Copy and concat stylesheets
+gulp.task('client.build.styles', function(){
 	return gulp.src('client/**/*.css')
+		.pipe(sourcemaps.init())
 		.pipe(concat('style.css'))
+		.pipe(sourcemaps.write('./'))
 		.pipe(gulp.dest('build/client'))
 })
 
 //Copy client library files
-gulp.task('client.build.libraries', function(){
+gulp.task('client.build.libs', function(){
 	return gulp.src(config.libs)
 		.pipe(gulp.dest('build/client/libs'))
+})
+
+//Copy and concat handlebar templates
+gulp.task('client.build.templates', function(){
+	return gulp.src('client/**/*.hbs')
+		.pipe(sourcemaps.init())
+		.pipe(templates({
+			compiler: require('../../bower_components/ember/ember-template-compiler'),
+			isHTMLBars: true,
+			name: function(name, done){
+				done(null, name.replace(/_/g, '/').replace(/\/index$/, ''))
+			}
+		}))
+		.pipe(concat('templates.js'))
+		.pipe(wrap('window.Templates = function(Ember){<%= contents %>}'))
+		.pipe(sourcemaps.write('./'))
+		.pipe(gulp.dest('build/client'))
 })
 
 //Setup webpack for compilation
@@ -59,10 +86,6 @@ gulp.task('client.build.compile', function(done){
 			new webpack.IgnorePlugin(/vertx/),
 			new webpack.optimize.CommonsChunkPlugin({
 				name: 'vendor'
-			}),
-			new webpack.ProvidePlugin({
-			    $: 'jquery',
-			    jQuery: 'jquery'
 			}),
 			new webpack.DefinePlugin({
 				'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
@@ -87,7 +110,7 @@ gulp.task('client.build.compile', function(done){
 						return lib.endsWith('.js')
 					}).map((lib) => {
 						return '/libs/' + path.basename(lib)
-					}),
+					}).concat([ 'templates.js' ]),
 				css: config.libs.filter((lib) => {
 						return lib.endsWith('.css')
 					}).map((lib) => {
@@ -104,6 +127,7 @@ gulp.task('client.build.compile', function(done){
 		},
 		resolve: {
 			modules: [ './client', './bower_components', './node_modules' ],
+			extensions: [ '.js', '.ts', '.json', '.png', '.jpg', '.jpeg', '.gif' ],
 			alias: {
 				ember: process.env.NODE_ENV === 'production' ? 'ember/ember.min' : 'ember/ember.debug',
 				jquery: process.env.NODE_ENV === 'production' ? 'jquery/dist/jquery.min' : 'jquery/src/jquery'
@@ -133,25 +157,6 @@ gulp.task('client.build.compile', function(done){
 					useBabel: true,
 					useCache: true
 				}
-			},{
-				test: /\.hbs$/,
-				include: /client\/templates/,
-				loader: 'ember-webpack-loaders/htmlbars-loader',
-				query: {
-					appPath: 'client',
-					templateCompiler: '../../bower_components/ember/ember-template-compiler.js'
-				}
-			},{
-				test: /client\/index\.js/,
-				use: [
-					{
-						loader: 'ember-webpack-loaders/inject-templates-loader',
-						query: { appPath: 'client' }
-					},{
-						loader: 'ember-webpack-loaders/inject-modules-loader',
-						query: { appPath: 'client' }
-					}
-				]
 			}]
 		}
 	}
@@ -177,10 +182,8 @@ gulp.task('client.build.compile', function(done){
 		delete module.exports.options.devtool
 	}
 	
-	//Compile webpack and watch for changes
-	webpack(options).watch({
-		ignored: /(node_modules|bower_components)/
-	}, function(err, stats){
+	//Prepare callback for compilation completion
+	let callback = function(err, stats){
 		
 		//Log stats from build
 		console.log(stats.toString({
@@ -201,5 +204,20 @@ gulp.task('client.build.compile', function(done){
 		module.exports.setup = true
 		
 		done(err)
-	})
+	}
+	
+	//Compile webpack and watch if developing
+	if (process.env.NODE_ENV === 'development'){
+		module.exports.watch = webpack(options).watch({
+			ignored: /(node_modules|bower_components)/
+		}, callback)
+	}else{
+		webpack(options).run(callback)
+	}
+})
+
+//Expires the current webpack watch and recompiles
+gulp.task('client.build.recompile', function(done){
+	module.exports.watch.invalidate()
+	done()
 })

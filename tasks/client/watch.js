@@ -7,16 +7,16 @@ const gulp = require('gulp')
 
 //! Watch
 gulp.task('client.watch', function(done){
+	
+	//Styles
 	gulp.watch([
-		'client/**/*.ejs',
-		'client/**/*.css',
-		'client/**/*.js',
-		'client/**/*.hbs',
-		'client/**/*.json'
-	], gulp.series('client.build.compile'))
-	.on('add', function(path){ require('./build.js').setup = false })
-	.on('unlink', function(path){ require('./build.js').setup = false })
-	.on('addDir', function(path){ require('./build.js').setup = false })
-	.on('unlinkDir', function(path){ require('./build.js').setup = false })
+		'client/**/*.css'
+	], gulp.series('client.build.styles'))
+	
+	//Templates
+	gulp.watch([
+		'client/**/*.hbs'
+	], gulp.series('client.build.templates'))
+	
 	done()
 })
