@@ -18,7 +18,7 @@ requireContext.keys().forEach(file => {
 		let url = file.split('.')
 		let lowerType = url[url.length - 2]
 		let type = lowerType.charAt(0).toUpperCase() + lowerType.slice(1)
-		
+		console.log(name + type)
 		//Apply to ember application
 		app[name + type] = context[name]
 	}

@@ -61,7 +61,14 @@ gulp.task('client.build.templates', function(){
 			compiler: require('../../bower_components/ember/ember-template-compiler'),
 			isHTMLBars: true,
 			name: function(name, done){
-				done(null, name.replace(/_/g, '/').replace(/\/index$/, ''))
+				
+				//Replace filenames at end of url which duplicate such as app/app
+				let url = name.split('/')
+				if (url[url.length - 1] === url[url.length - 2]){
+					done(null, name.replace(new RegExp('/' + url[url.length - 1] + '$', 'g'), ''))
+				}else{
+					done(null, name)
+				}
 			}
 		}))
 		.pipe(concat('templates.js'))

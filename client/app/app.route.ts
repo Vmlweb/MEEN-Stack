@@ -1,9 +1,6 @@
+//Modules
 import { Ember } from 'vendor'
 
-export const Index = Ember.Route.extend({
-//	templateName: 'index',
+export const App = Ember.Route.extend({
 	
-	beforeModel(){
-//		this.transitionTo('index.home')
-	}
 })
