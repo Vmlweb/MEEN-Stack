@@ -23,7 +23,7 @@ const execute = (req, res, next) => {
 		if (err){
 			next(err)
 		}else{
-			log.info('User ' +  + ' created')
+			log.info('User ' + user.id.toString() + ' created')
 			res.json({
 				userId: user.id.toString()
 			})

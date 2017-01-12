@@ -24,12 +24,7 @@ requireContext.keys().forEach(file => {
 		let type = lowerType.charAt(0).toUpperCase() + lowerType.slice(1)
 		
 		//Decide property to use
-		let property
-		if (lowerType == 'model'){
-			property = name + type
-		}else{
-			property = name + type
-		}
+		let property = name + type
 		
 		//Apply to ember application
 		app[name + type] = context[name]
