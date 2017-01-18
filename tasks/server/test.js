@@ -25,7 +25,7 @@ gulp.task('server.test', gulp.series(
 	gulp.parallel('server.build', 'build.config'),
 	'database.test',
 	'database.reset.config',
-	'server.test.coverage',
+//	'server.test.coverage',
 	'server.test.jasmine',
 	'stop'
 ));
@@ -43,8 +43,8 @@ gulp.task('server.test.coverage', function(){
 		}
 	}else{
 		includes = includes.concat([
-			'build/server/api/**/*.js',
-			'!build/server/api/**/*.test.js'
+			'build/server/api/**/*.ts',
+			'!build/server/api/**/*.test.ts'
 		]);
 	}
 	
@@ -61,25 +61,23 @@ gulp.task('server.test.jasmine', function(done){
 	if (process.env.hasOwnProperty('test') && process.env.test.length > 0){
 		for (i in config.tests[process.env.test]){
 			let tests = config.tests[process.env.test][i];
-			includes.push(path.join('build/server', tests, '*.test.js'));
+			includes.push(path.join('build/server', tests, '*.test.ts'));
 		}
 	}else{
 		includes = includes.concat([
-			'build/server/tests/*.test.js',
-			'build/server/**/*.test.js'
+			'build/server/tests/*.test.ts',
+			'build/server/**/*.test.ts'
 		]);
 	}
 	
 	//Execute tests and generate coverage reports
 	gulp.src([
-		'build/server/tests/setup.test.js',
-		'build/server/tests/**/*.test.js'
+		'build/server/tests/setup.test.ts',
+		'build/server/tests/**/*.test.ts'
 	].concat(includes))
 	.pipe(jasmine({
 		reporter: [
-			new sreporter({
-				displayStacktrace: 'all'
-			}),
+			new jreporter.TerminalReporter(),
 			new jreporter.JUnitXmlReporter({
 				savePath: 'logs/tests/server',
 				consolidateAll: false

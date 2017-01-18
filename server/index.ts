@@ -14,6 +14,18 @@ app.get(/^(?!\/api).*/, (req, res) => {
 
 log.info('Loaded static client route')
 
+//require.context('/', true, /hello.test.ts/)
+require('hello.test')
+
+var Jasmine = require('jasmine');
+var jasmine = new Jasmine();
+
+jasmine.loadConfigFile();
+jasmine.configureDefaultReporter({
+    showColors: false
+});
+jasmine.execute(['test.ts'], 'a spec name')
+
 //API V1
 require.ensure([], function(require){
 	let api: any = require('api_v1')
